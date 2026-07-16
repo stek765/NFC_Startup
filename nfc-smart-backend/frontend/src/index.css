@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Jost:ital,wght@0,300..600;1,300..600&family=Mrs+Saint+Delafield&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #faf6ee;
+  --color-surface: #f3eee1;
+  --color-surface-raised: #ece5d4;
+  --color-border: rgba(28, 26, 21, 0.12);
+  --color-text: #1c1a15;
+  --color-text-muted: #756e5e;
+  --color-accent: #1c1a15;
+  --color-accent-ink: #faf6ee;
+  --color-gold: #9a7b4f;
+
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Jost', system-ui, sans-serif;
+  --font-script: 'Mrs Saint Delafield', cursive;
+}
+
+html {
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  overscroll-behavior-y: none;
+}
+
+img {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.inverted {
+  --color-bg: #1c1a15;
+  --color-surface: #262119;
+  --color-surface-raised: #302a20;
+  --color-border: rgba(250, 246, 238, 0.16);
+  --color-text: #faf6ee;
+  --color-text-muted: #b3ab9c;
+  --color-accent: #faf6ee;
+  --color-accent-ink: #1c1a15;
+}
+
+* {
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
