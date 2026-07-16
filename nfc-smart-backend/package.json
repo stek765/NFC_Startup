@@ -1,0 +1,19 @@
+{
+  "name": "nfc-smart-backend",
+  "version": "1.0.0",
+  "description": "Backend serverless per NFC Smart con Cloudflare Workers, Supabase e Telegram",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "cd frontend && npm install && npm run build",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240117.0",
+    "typescript": "^5.3.3",
+    "wrangler": "^4.92.0"
+  }
+}

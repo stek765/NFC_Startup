@@ -1,0 +1,44 @@
+# Secrets — mai in chiaro nel repo (i veri secret sono su Cloudflare via `wrangler secret put`)
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Wrangler build cache / dev state
+.wrangler/
+
+# Build output (rigenerato con `npm run deploy` / `wrangler deploy`)
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+.superpowers/
+
+# Playwright CLI session artifacts (screenshots, snapshots, console logs)
+.playwright-cli/
+
+# Python bytecode cache (skill scripts)
+__pycache__/
+*.pyc
+
+# Claude Code / tooling locale — mai nel repo pubblico
+CLAUDE.md
+.claude/
+docs/superpowers/
+skills-lock.json
+.mcp.json
+**/.mcp.json
+
+# Note interne
+nfc-smart-backend/PRO_VENDITA.txt
