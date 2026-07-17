@@ -16,10 +16,12 @@ const THICKNESS_MM = 4;
 
 type ViewId = 'front' | 'threeq' | 'side';
 
-const VIEWS: { id: ViewId; label: string; transform: string }[] = [
-  { id: 'front', label: 'Frontale', transform: 'rotateY(0deg)' },
-  { id: 'threeq', label: 'Tre quarti', transform: 'rotateY(32deg) rotateX(4deg)' },
-  { id: 'side', label: 'Profilo', transform: 'rotateY(64deg)' },
+// rotate = posa; zoom = quanto la camera "si avvicina" (le viste angolate sono
+// scatti ravvicinati stile scheda prodotto, non la stessa inquadratura ruotata)
+const VIEWS: { id: ViewId; label: string; rotate: string; zoom: number }[] = [
+  { id: 'front', label: 'Frontale', rotate: 'rotateY(0deg)', zoom: 1 },
+  { id: 'threeq', label: 'Tre quarti', rotate: 'rotateY(38deg) rotateX(7deg)', zoom: 1.5 },
+  { id: 'side', label: 'Profilo', rotate: 'rotateY(69deg) rotateX(4deg)', zoom: 1.7 },
 ];
 
 /** scurisce un #rrggbb (f < 1) — per il fianco della targhetta */
@@ -29,14 +31,65 @@ function shade(hex: string, f: number): string {
   return `#${c(0)}${c(2)}${c(4)}`;
 }
 
+const QUOTA = 'rgba(23,24,26,0.5)';
+
+/** linee di quota stile disegno tecnico: tacca–linea–tacca + misura */
+function DimLine({ from, to, axis, label }: { from: number; to: number; axis: 'x' | 'y'; label: string }) {
+  const mid = (from + to) / 2;
+  if (axis === 'x') {
+    // quota orizzontale, disegnata sopra (y = -9)
+    return (
+      <g>
+        <g stroke={QUOTA} strokeWidth="0.7">
+          <line x1={from} y1={-5} x2={from} y2={-13} />
+          <line x1={to} y1={-5} x2={to} y2={-13} />
+          <line x1={from} y1={-9} x2={mid - 12} y2={-9} />
+          <line x1={mid + 12} y1={-9} x2={to} y2={-9} />
+        </g>
+        <text x={mid} y={-7} textAnchor="middle" fontSize="5.5" fill={QUOTA} fontFamily="'IBM Plex Mono', monospace">
+          {label}
+        </text>
+      </g>
+    );
+  }
+  // quota verticale, disegnata a sinistra (x = -9)
+  return (
+    <g>
+      <g stroke={QUOTA} strokeWidth="0.7">
+        <line x1={-5} y1={from} x2={-13} y2={from} />
+        <line x1={-5} y1={to} x2={-13} y2={to} />
+        <line x1={-9} y1={from} x2={-9} y2={mid - 12} />
+        <line x1={-9} y1={mid + 12} x2={-9} y2={to} />
+      </g>
+      <text
+        x={-7}
+        y={mid}
+        textAnchor="middle"
+        fontSize="5.5"
+        fill={QUOTA}
+        fontFamily="'IBM Plex Mono', monospace"
+        transform={`rotate(-90 -7 ${mid})`}
+      >
+        {label}
+      </text>
+    </g>
+  );
+}
+
 function PhoneSilhouette({ w, h, gap, visible }: { w: number; h: number; gap: number; visible: boolean }) {
+  // viewBox esteso a sinistra e sopra per le linee di quota; il bordo inferiore
+  // resta y=147 così la base del telefono è allineata a quella della targhetta.
   // quando la vista non è frontale collassa davvero (larghezza -> 0), così la
   // targhetta si ricentra invece di orbitare attorno a uno spazio vuoto
+  const mLeft = 20;
+  const mTop = 18;
+  const fullW = w * ((71 + mLeft) / 71);
+  const fullH = h * ((147 + mTop) / 147);
   return (
     <div
       aria-hidden={!visible}
       style={{
-        width: visible ? w : 0,
+        width: visible ? fullW : 0,
         marginRight: visible ? gap : 0,
         opacity: visible ? 1 : 0,
         overflow: 'hidden',
@@ -44,14 +97,19 @@ function PhoneSilhouette({ w, h, gap, visible }: { w: number; h: number; gap: nu
       }}
     >
       <svg
-        viewBox="0 0 71 147"
-        style={{ width: w, height: h }}
-        aria-label="Smartphone a grandezza reale, per confronto"
+        viewBox={`-${mLeft} -${mTop} ${71 + mLeft} ${147 + mTop}`}
+        style={{ width: fullW, height: fullH }}
+        aria-label="Smartphone di misura media (71 per 147 millimetri), per confronto"
         role="img"
       >
         <rect x="1.5" y="1.5" width="68" height="144" rx="10" fill="rgba(23,24,26,0.05)" stroke="rgba(23,24,26,0.35)" strokeWidth="2" />
         <rect x="6" y="6" width="59" height="135" rx="6" fill="none" stroke="rgba(23,24,26,0.14)" strokeWidth="1.5" />
         <circle cx="35.5" cy="11" r="2" fill="rgba(23,24,26,0.3)" />
+        <text x="35.5" y="78" textAnchor="middle" fontSize="4.6" fill="rgba(23,24,26,0.35)" fontFamily="'IBM Plex Mono', monospace">
+          smartphone medio
+        </text>
+        <DimLine axis="x" from={0} to={71} label="71 mm" />
+        <DimLine axis="y" from={0} to={147} label="147 mm" />
       </svg>
     </div>
   );
@@ -111,12 +169,16 @@ export default function PreviewStage({ config }: { config: PlaqueConfig }) {
   // Su mobile (<1024) didascalia e miniature stanno in colonna sotto la coppia,
   // quindi il budget verticale per la coppia è più stretto.
   const hFactor = bw >= 1024 ? 0.74 : 0.52;
-  const k = Math.min((bw * 0.72) / (PHONE_MM[0] + GAP_MM + mmW), (bh * hFactor) / Math.max(PHONE_MM[1], mmH));
+  // +20/+18: margini delle linee di quota del telefono (vedi PhoneSilhouette)
+  const k = Math.min((bw * 0.72) / (PHONE_MM[0] + 20 + GAP_MM + mmW), (bh * hFactor) / Math.max(PHONE_MM[1] + 18, mmH));
   const plaqueW = mmW * k;
   const t = Math.max(3, THICKNESS_MM * k);
   const sideColor = shade(base.hex, 0.72);
   const activeView = VIEWS.find((v) => v.id === view)!;
   const viewBox = `0 0 ${shape.width} ${shape.height}`;
+  // lo zoom delle viste ravvicinate non deve mai far uscire la targhetta dalla scena
+  const zoomCap = (bh * 0.82) / Math.max(1, mmH * k);
+  const zoom = Math.min(activeView.zoom, zoomCap);
 
   return (
     <div ref={outerRef} className="relative flex h-full w-full items-center justify-center">
@@ -129,8 +191,8 @@ export default function PreviewStage({ config }: { config: PlaqueConfig }) {
               style={{
                 width: plaqueW,
                 transformStyle: 'preserve-3d',
-                transition: 'transform 0.6s cubic-bezier(0.25, 0.9, 0.3, 1)',
-                transform: activeView.transform,
+                transition: 'transform 0.65s cubic-bezier(0.3, 1.35, 0.4, 1)',
+                transform: `scale(${zoom}) ${activeView.rotate}`,
               }}
             >
               {/* spessore: strati della stessa sagoma dietro la faccia frontale
@@ -155,7 +217,9 @@ export default function PreviewStage({ config }: { config: PlaqueConfig }) {
             </div>
           </div>
         </div>
-        <PlaqueCaption config={config} />
+        <div style={{ opacity: view === 'front' ? 1 : 0, transition: 'opacity 0.4s' }}>
+          <PlaqueCaption config={config} />
+        </div>
 
         {/* viste: riga nel flusso sotto la didascalia su mobile, colonna a sinistra su desktop */}
         <div className="mt-1 flex gap-2 lg:absolute lg:left-6 lg:top-1/2 lg:mt-0 lg:-translate-y-1/2 lg:flex-col">
@@ -165,7 +229,7 @@ export default function PreviewStage({ config }: { config: PlaqueConfig }) {
               shapePath={shape.path}
               viewBox={viewBox}
               baseHex={base.hex}
-              transform={v.transform}
+              transform={v.rotate}
               active={view === v.id}
               label={v.label}
               onClick={() => setView(v.id)}
