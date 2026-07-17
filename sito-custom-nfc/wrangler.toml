@@ -1,0 +1,13 @@
+# Worker DEDICATO al sito custom NFC — separato dal Worker del menu ristoranti.
+# Non ancora deployato: per ora si lavora in locale (npm run dev / npm run dev:worker).
+name = "sito-custom-nfc"
+main = "worker/index.ts"
+compatibility_date = "2026-07-01"
+
+[dev]
+port = 8788
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
