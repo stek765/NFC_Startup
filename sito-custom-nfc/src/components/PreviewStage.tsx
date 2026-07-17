@@ -32,7 +32,8 @@ const VIEWS: ViewDef[] = [
   { id: 'front', label: 'Frontale', rotate: 'rotateY(0deg)', zoom: 1, origin: '50% 50%' },
   { id: 'table', label: 'Sul tavolo', rotate: 'rotateX(56deg) rotateZ(-14deg)', zoom: 1.35, origin: '50% 72%', dark: true },
   { id: 'diag', label: 'Diagonale', rotate: 'rotateZ(-20deg) rotateY(32deg) rotateX(8deg)', zoom: 1.45, origin: '50% 50%' },
-  { id: 'landscape', label: 'Orizzontale', rotate: 'rotateZ(-90deg) rotateY(-14deg) rotateX(6deg)', zoom: 1.15, origin: '50% 50%' },
+  // coricata di lato, faccia inclinata verso l'alto: si vede lo spessore lungo il bordo
+  { id: 'landscape', label: 'Orizzontale', rotate: 'rotateX(64deg) rotateZ(-90deg)', zoom: 1.2, origin: '50% 50%' },
   { id: 'side', label: 'Profilo', rotate: 'rotateY(72deg) rotateX(4deg)', zoom: 1.6, origin: '50% 50%' },
 ];
 
@@ -117,13 +118,41 @@ function PhoneSilhouette({ w, h, gap, visible }: { w: number; h: number; gap: nu
         <rect x="1.5" y="1.5" width="68" height="144" rx="10" fill="rgba(23,24,26,0.05)" stroke="rgba(23,24,26,0.35)" strokeWidth="2" />
         <rect x="6" y="6" width="59" height="135" rx="6" fill="none" stroke="rgba(23,24,26,0.14)" strokeWidth="1.5" />
         <circle cx="35.5" cy="11" r="2" fill="rgba(23,24,26,0.3)" />
-        <text x="35.5" y="78" textAnchor="middle" fontSize="4.6" fill="rgba(23,24,26,0.35)" fontFamily="'IBM Plex Mono', monospace">
-          smartphone medio
-        </text>
         <DimLine axis="x" from={0} to={71} label="71 mm" />
         <DimLine axis="y" from={0} to={147} label="147 mm" />
       </svg>
     </div>
+  );
+}
+
+/** quote della vista orizzontale: altezza della targhetta + spessore, in px di schermo */
+function LandscapeDims({ w, mmLabel, tPx }: { w: number; mmLabel: string; tPx: number }) {
+  const th = Math.max(10, tPx);
+  const midY = 12;
+  return (
+    // translateX(42) = metà degli 84px extra della quota spessore: così la
+    // quota dell'altezza resta centrata esattamente sotto la targhetta
+    <svg width={w + 84} height={Math.max(30, th + 12)} aria-hidden style={{ transform: 'translateX(42px)' }}>
+      {/* altezza (il lato lungo, ora orizzontale) */}
+      <g stroke={QUOTA} strokeWidth="1">
+        <line x1={1} y1={midY - 7} x2={1} y2={midY + 7} />
+        <line x1={w} y1={midY - 7} x2={w} y2={midY + 7} />
+        <line x1={1} y1={midY} x2={w / 2 - 30} y2={midY} />
+        <line x1={w / 2 + 30} y1={midY} x2={w} y2={midY} />
+      </g>
+      <text x={w / 2} y={midY + 3.5} textAnchor="middle" fontSize="10" fill={QUOTA} fontFamily="'IBM Plex Mono', monospace">
+        {mmLabel}
+      </text>
+      {/* spessore */}
+      <g stroke={QUOTA} strokeWidth="1">
+        <line x1={w + 12} y1={4} x2={w + 24} y2={4} />
+        <line x1={w + 12} y1={4 + th} x2={w + 24} y2={4 + th} />
+        <line x1={w + 18} y1={4} x2={w + 18} y2={4 + th} />
+      </g>
+      <text x={w + 28} y={4 + th / 2 + 3.5} textAnchor="start" fontSize="10" fill={QUOTA} fontFamily="'IBM Plex Mono', monospace">
+        {THICKNESS_MM} mm
+      </text>
+    </svg>
   );
 }
 
@@ -244,8 +273,12 @@ export default function PreviewStage({ config }: { config: PlaqueConfig }) {
             </div>
           </div>
         </div>
-        <div style={{ opacity: view === 'front' ? 1 : 0, transition: 'opacity 0.4s' }}>
-          <PlaqueCaption config={config} />
+        <div style={{ opacity: view === 'front' || view === 'landscape' ? 1 : 0, transition: 'opacity 0.4s' }}>
+          {view === 'landscape' ? (
+            <LandscapeDims w={mmH * k * zoom} mmLabel={`${mmH} mm`} tPx={t * zoom} />
+          ) : (
+            <PlaqueCaption config={config} />
+          )}
         </div>
 
         {/* viste: pill etichettate — righe sotto su mobile, colonna a sinistra su desktop */}
