@@ -14,33 +14,17 @@ import { SearchOverlay } from './SearchOverlay';
 import { SelectionButton } from './SelectionButton';
 import { SelectionSheet } from './SelectionSheet';
 
-const HINT_KEY = 'nfc-hint-comanda';
-const HINT_TTL_MS = 2 * 60 * 60 * 1000;
-
-function hintDismissed(): boolean {
-  try {
-    const ts = Number(localStorage.getItem(HINT_KEY));
-    return Number.isFinite(ts) && ts > 0 && Date.now() - ts < HINT_TTL_MS;
-  } catch {
-    return true;
-  }
-}
-
 export function MenuView({ onBack }: { onBack: () => void }) {
   const { lang, t } = useLang();
   const [activeId, setActiveId] = useState(menu[0].id);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [headerHidden, setHeaderHidden] = useState(false);
-  const [hintVisible, setHintVisible] = useState(() => !hintDismissed());
+  const [hintVisible, setHintVisible] = useState(true);
   const [customize, setCustomize] = useState<{ item: (typeof menu)[number]['items'][number]; key: string } | null>(null);
 
   function dismissHint() {
     setHintVisible(false);
-    try {
-      localStorage.setItem(HINT_KEY, String(Date.now()));
-    } catch {
-    }
   }
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const isClickScrolling = useRef(false);
