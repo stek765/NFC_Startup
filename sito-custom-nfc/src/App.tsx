@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import LogoUpload from './components/LogoUpload';
-import Preview from './components/Preview';
+import PreviewStage from './components/PreviewStage';
 import PriceBar from './components/PriceBar';
 import QuoteSheet from './components/QuoteSheet';
 import { Chips, Field, Section, Swatches, Toggle } from './components/controls';
@@ -19,7 +19,7 @@ export default function App() {
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[minmax(0,1fr)_440px]">
       <div className="sticky top-0 z-10 flex h-[44vh] items-center justify-center bg-stage lg:h-screen">
-        <Preview config={config} />
+        <PreviewStage config={config} />
       </div>
 
       <main className="px-5 pb-44 pt-8 lg:h-screen lg:overflow-y-auto lg:px-8">

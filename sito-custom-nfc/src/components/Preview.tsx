@@ -38,13 +38,31 @@ function fitFontSize(text: string, maxSize: number, width: number): number {
   return Math.min(maxSize, (width * 1.7) / Math.max(text.length, 1));
 }
 
-export default function Preview({ config }: { config: PlaqueConfig }) {
+export function PlaqueCaption({ config }: { config: PlaqueConfig }) {
   const shape = SHAPES.find((s) => s.id === config.shape)!;
   const size = SIZES.find((s) => s.id === config.size)!;
+  const [mmW, mmH] = shape.mm[config.size];
+  return (
+    <p className="font-mono text-xs text-muted">
+      {size.label} · {mmW}×{mmH} mm · NFC incluso
+    </p>
+  );
+}
+
+export default function Preview({
+  config,
+  widthPx,
+  showCaption = true,
+}: {
+  config: PlaqueConfig;
+  /** larghezza esatta in px (PreviewStage, scala millimetrica); senza, scala estetica in vmin */
+  widthPx?: number;
+  showCaption?: boolean;
+}) {
+  const shape = SHAPES.find((s) => s.id === config.shape)!;
   const base = BASE_COLORS.find((c) => c.id === config.baseColor)!;
   const print = PRINT_COLORS.find((c) => c.id === config.printColor)!;
   const font = FONTS.find((f) => f.id === config.font)!;
-  const [mmW, mmH] = shape.mm[config.size];
   const { topY, centerY, centerSize, bottomY } = shape.slots;
   const cx = shape.width / 2;
 
@@ -65,8 +83,8 @@ export default function Preview({ config }: { config: PlaqueConfig }) {
       <svg
         viewBox={`0 0 ${shape.width} ${shape.height}`}
         style={{
-          width: `${(shape.width / 450) * 62 * scale}vmin`,
-          maxWidth: '86vw',
+          width: widthPx !== undefined ? `${widthPx}px` : `${(shape.width / 450) * 62 * scale}vmin`,
+          maxWidth: widthPx !== undefined ? undefined : '86vw',
           filter: 'drop-shadow(0 18px 28px rgba(23,24,26,0.18))',
         }}
         role="img"
@@ -108,9 +126,11 @@ export default function Preview({ config }: { config: PlaqueConfig }) {
           </>
         )}
       </svg>
-      <figcaption className="font-mono text-xs text-muted">
-        {size.label} · {mmW}×{mmH} mm · NFC incluso
-      </figcaption>
+      {showCaption && (
+        <figcaption>
+          <PlaqueCaption config={config} />
+        </figcaption>
+      )}
     </figure>
   );
 }
