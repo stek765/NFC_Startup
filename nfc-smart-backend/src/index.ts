@@ -196,7 +196,15 @@ async function handleQuote(request: Request, env: Env, ctx: ExecutionContext): P
             body?.config && typeof body.config === 'object' && !Array.isArray(body.config) && JSON.stringify(body.config).length <= 4000
                 ? body.config
                 : null;
-        if (!name || !contact || price === null || !config) {
+        const configFieldsValid =
+            config !== null &&
+            typeof config.shape === 'string' && config.shape.length > 0 &&
+            typeof config.size === 'string' && config.size.length > 0 &&
+            typeof config.baseColor === 'string' && config.baseColor.length > 0 &&
+            typeof config.printColor === 'string' && config.printColor.length > 0 &&
+            typeof config.font === 'string' && config.font.length > 0 &&
+            typeof config.qr === 'boolean';
+        if (!name || !contact || price === null || !config || !configFieldsValid) {
             return new Response('Bad request', { status: 400, headers: cors });
         }
 

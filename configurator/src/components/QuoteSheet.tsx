@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BASE_COLORS, FONTS, PRINT_COLORS, SHAPES, SIZES } from '../catalog';
+import { BASE_COLORS, FONTS, PRINT_COLORS, SHAPES } from '../catalog';
 import { submitQuote } from '../lib/api';
 import type { PlaqueConfig } from '../types';
 
@@ -38,7 +38,10 @@ export default function QuoteSheet({
       restaurant_name: name.trim(),
       contact: contact.trim(),
       notes: notes.trim(),
-      config,
+      // The Worker caps JSON.stringify(config).length at 4KB — the logo (a 10-200KB PNG
+      // data-URL) must not travel inside `config` or every logo-bearing quote 400s.
+      // It's sent once, in the top-level `logo` field below.
+      config: { ...config, logo: null },
       price,
       logo: config.logo,
     });
@@ -46,7 +49,13 @@ export default function QuoteSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-30 flex items-end justify-center bg-text/40 lg:items-center" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-30 flex items-end justify-center bg-text/40 lg:items-center"
+      onClick={() => {
+        if (status === 'sending') return;
+        onClose();
+      }}
+    >
       <div
         className="max-h-[88vh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-2xl bg-surface p-6 lg:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
