@@ -14,14 +14,26 @@ const PHONE_MM: [number, number] = [71, 147];
 const GAP_MM = 16;
 const THICKNESS_MM = 4;
 
-type ViewId = 'front' | 'threeq' | 'side';
+type ViewId = 'front' | 'table' | 'diag' | 'landscape' | 'side';
 
-// rotate = posa; zoom = quanto la camera "si avvicina" (le viste angolate sono
-// scatti ravvicinati stile scheda prodotto, non la stessa inquadratura ruotata)
-const VIEWS: { id: ViewId; label: string; rotate: string; zoom: number }[] = [
-  { id: 'front', label: 'Frontale', rotate: 'rotateY(0deg)', zoom: 1 },
-  { id: 'threeq', label: 'Tre quarti', rotate: 'rotateY(38deg) rotateX(7deg)', zoom: 1.5 },
-  { id: 'side', label: 'Profilo', rotate: 'rotateY(69deg) rotateX(4deg)', zoom: 1.7 },
+// Pose stile still-life da scheda prodotto: rotate = posa, zoom = quanto la
+// camera si avvicina, origin = perno della rotazione, dark = fondale scuro
+// d'atmosfera (la vista "sul tavolo") con ombra di contatto.
+interface ViewDef {
+  id: ViewId;
+  label: string;
+  rotate: string;
+  zoom: number;
+  origin: string;
+  dark?: boolean;
+}
+
+const VIEWS: ViewDef[] = [
+  { id: 'front', label: 'Frontale', rotate: 'rotateY(0deg)', zoom: 1, origin: '50% 50%' },
+  { id: 'table', label: 'Sul tavolo', rotate: 'rotateX(56deg) rotateZ(-14deg)', zoom: 1.35, origin: '50% 72%', dark: true },
+  { id: 'diag', label: 'Diagonale', rotate: 'rotateZ(-20deg) rotateY(32deg) rotateX(8deg)', zoom: 1.45, origin: '50% 50%' },
+  { id: 'landscape', label: 'Orizzontale', rotate: 'rotateZ(-90deg) rotateY(-14deg) rotateX(6deg)', zoom: 1.15, origin: '50% 50%' },
+  { id: 'side', label: 'Profilo', rotate: 'rotateY(72deg) rotateX(4deg)', zoom: 1.6, origin: '50% 50%' },
 ];
 
 /** scurisce un #rrggbb (f < 1) — per il fianco della targhetta */
@@ -115,32 +127,18 @@ function PhoneSilhouette({ w, h, gap, visible }: { w: number; h: number; gap: nu
   );
 }
 
-/** miniatura di una vista: la sagoma della targhetta, già ruotata, nel colore scelto */
-function ViewThumb({
-  shapePath, viewBox, baseHex, transform, active, label, onClick,
-}: {
-  shapePath: string;
-  viewBox: string;
-  baseHex: string;
-  transform: string;
-  active: boolean;
-  label: string;
-  onClick: () => void;
-}) {
+/** selettore vista: pill testuale, leggibile anche sul fondale scuro */
+function ViewPill({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      title={label}
       aria-label={`Vista ${label}`}
-      className={`flex h-12 w-12 items-center justify-center rounded-lg border bg-surface transition-colors ${
-        active ? 'border-accent ring-1 ring-accent' : 'border-border'
+      className={`rounded-full border px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] whitespace-nowrap transition-colors ${
+        active ? 'border-accent bg-accent text-accent-ink' : 'border-border bg-surface text-muted'
       }`}
-      style={{ perspective: '220px' }}
     >
-      <svg viewBox={viewBox} className="h-8 w-8" style={{ transform, transition: 'transform 0.3s' }}>
-        <path d={shapePath} fill={baseHex} stroke="rgba(23,24,26,0.25)" strokeWidth="6" />
-      </svg>
+      {label}
     </button>
   );
 }
@@ -182,15 +180,44 @@ export default function PreviewStage({ config }: { config: PlaqueConfig }) {
 
   return (
     <div ref={outerRef} className="relative flex h-full w-full items-center justify-center">
+      {/* fondale d'atmosfera per la vista "sul tavolo": sera al ristorante */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          zIndex: -1,
+          background: 'radial-gradient(120% 90% at 50% 30%, #463c2d 0%, #262019 55%, #141210 100%)',
+          opacity: activeView.dark ? 1 : 0,
+          transition: 'opacity 0.6s',
+        }}
+      />
       <div className="flex flex-col items-center gap-3">
         <div className="flex items-end justify-center">
           <PhoneSilhouette w={PHONE_MM[0] * k} h={PHONE_MM[1] * k} gap={GAP_MM * k} visible={view === 'front'} />
-          <div style={{ perspective: '1100px' }}>
+          <div className="relative" style={{ perspective: '1100px' }}>
+            {/* ombra di contatto sul tavolo */}
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                left: '50%',
+                bottom: -plaqueW * 0.08,
+                width: plaqueW * 1.35,
+                height: plaqueW * 0.26,
+                transform: 'translateX(-50%)',
+                borderRadius: '50%',
+                background: 'radial-gradient(ellipse, rgba(0,0,0,0.55) 0%, transparent 65%)',
+                filter: 'blur(8px)',
+                opacity: activeView.dark ? 1 : 0,
+                transition: 'opacity 0.6s',
+              }}
+            />
             <div
               className="relative"
               style={{
                 width: plaqueW,
                 transformStyle: 'preserve-3d',
+                transformOrigin: activeView.origin,
                 transition: 'transform 0.65s cubic-bezier(0.3, 1.35, 0.4, 1)',
                 transform: `scale(${zoom}) ${activeView.rotate}`,
               }}
@@ -221,19 +248,10 @@ export default function PreviewStage({ config }: { config: PlaqueConfig }) {
           <PlaqueCaption config={config} />
         </div>
 
-        {/* viste: riga nel flusso sotto la didascalia su mobile, colonna a sinistra su desktop */}
-        <div className="mt-1 flex gap-2 lg:absolute lg:left-6 lg:top-1/2 lg:mt-0 lg:-translate-y-1/2 lg:flex-col">
+        {/* viste: pill etichettate — righe sotto su mobile, colonna a sinistra su desktop */}
+        <div className="mt-1 flex max-w-[92vw] flex-wrap justify-center gap-2 lg:absolute lg:left-6 lg:top-1/2 lg:mt-0 lg:max-w-none lg:-translate-y-1/2 lg:flex-col lg:items-start">
           {VIEWS.map((v) => (
-            <ViewThumb
-              key={v.id}
-              shapePath={shape.path}
-              viewBox={viewBox}
-              baseHex={base.hex}
-              transform={v.rotate}
-              active={view === v.id}
-              label={v.label}
-              onClick={() => setView(v.id)}
-            />
+            <ViewPill key={v.id} label={v.label} active={view === v.id} onClick={() => setView(v.id)} />
           ))}
         </div>
       </div>
