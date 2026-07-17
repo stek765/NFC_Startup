@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import LogoUpload from './components/LogoUpload';
 import Preview from './components/Preview';
+import PriceBar from './components/PriceBar';
+import QuoteSheet from './components/QuoteSheet';
 import { Chips, Field, Section, Swatches, Toggle } from './components/controls';
 import { BASE_COLORS, FONTS, LOGO_PRICE, MAX_TEXT_LEN, PRINT_COLORS, QR_PRICE, SHAPES, SIZES } from './catalog';
+import { computePrice } from './lib/price';
 import { isReadable } from './lib/readability';
 import { useConfig } from './state/useConfig';
 import type { ShapeId, SizeId } from './types';
@@ -10,8 +13,8 @@ import type { ShapeId, SizeId } from './types';
 export default function App() {
   const { config, set, setBaseColor } = useConfig();
   const [quoteOpen, setQuoteOpen] = useState(false);
-  void quoteOpen; // usato dal Task 8
   const baseHex = BASE_COLORS.find((c) => c.id === config.baseColor)!.hex;
+  const price = computePrice(config);
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[minmax(0,1fr)_440px]">
@@ -95,7 +98,8 @@ export default function App() {
         </Section>
       </main>
 
-      {/* Task 8: <PriceBar .../> + <QuoteSheet .../> */}
+      <PriceBar price={price} onQuote={() => setQuoteOpen(true)} />
+      <QuoteSheet open={quoteOpen} onClose={() => setQuoteOpen(false)} config={config} price={price} />
     </div>
   );
 }
