@@ -15,10 +15,12 @@ const GAP_MM = 16;
 const THICKNESS_MM = 4;
 
 // Foto d'ambiente per la vista "Sul tavolo" (Unsplash, licenza libera — stesso
-// pattern di nfc-smart-backend/frontend/src/data/images.ts): tavolo scuro di
-// ristorante con candele e bokeh caldo, primo piano libero per la targhetta.
+// pattern di nfc-smart-backend/frontend/src/data/images.ts). FLAT-LAY dall'alto:
+// il piano del tavolo è parallelo allo schermo, quindi la targhetta si appoggia
+// FRONTALE senza prospettive da far combaciare (una foto di sbieco era stata
+// provata due volte: l'oggetto sembrava sempre incollato/volante).
 const TABLE_AMBIANCE =
-  'https://images.unsplash.com/photo-1519756719377-e084f8333a83?fm=jpg&q=70&w=1800&auto=format&fit=crop';
+  'https://images.unsplash.com/photo-1533631273148-264f2ec26448?fm=jpg&q=70&w=1800&auto=format&fit=crop';
 
 type ViewId = 'front' | 'table' | 'diag' | 'landscape' | 'side';
 
@@ -38,9 +40,9 @@ interface ViewDef {
 
 const VIEWS: ViewDef[] = [
   { id: 'front', label: 'Frontale', rotate: 'rotateY(0deg)', zoom: 1, origin: '50% 50%' },
-  // prospettiva schiacciata come i piatti della foto (camera bassa) e targhetta
-  // spostata sul legno libero in basso: deve sembrare APPOGGIATA, non volante
-  { id: 'table', label: 'Sul tavolo', rotate: 'rotateX(74deg) rotateZ(-16deg)', zoom: 1.25, origin: '50% 55%', dark: true, offset: [-0.06, 0.2] },
+  // flat-lay: la targhetta giace sul legno vista dall'alto — frontale con una
+  // leggera rotazione naturale, come l'avesse appoggiata un cameriere
+  { id: 'table', label: 'Sul tavolo', rotate: 'rotateZ(-8deg)', zoom: 1.28, origin: '50% 50%', dark: true, offset: [0, 0.03] },
   { id: 'diag', label: 'Diagonale', rotate: 'rotateZ(-20deg) rotateY(32deg) rotateX(8deg)', zoom: 1.45, origin: '50% 50%' },
   // coricata di lato, faccia inclinata verso l'alto: si vede lo spessore lungo il bordo
   { id: 'landscape', label: 'Orizzontale', rotate: 'rotateX(64deg) rotateZ(-90deg)', zoom: 1.2, origin: '50% 50%' },
@@ -236,13 +238,14 @@ export default function PreviewStage({ config }: { config: PlaqueConfig }) {
           alt=""
           loading="lazy"
           className="h-full w-full object-cover"
-          style={{ filter: 'brightness(0.8) saturate(0.95)', objectPosition: '50% 62%' }}
+          style={{ filter: 'brightness(0.9)' }}
         />
+        {/* pozza di luce calda (candela fuori campo) + vignettatura */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              'radial-gradient(85% 65% at 50% 52%, transparent 0%, rgba(10,8,5,0.45) 60%, rgba(10,8,5,0.85) 100%)',
+              'radial-gradient(55% 45% at 62% 30%, rgba(255,166,63,0.26) 0%, transparent 70%), radial-gradient(85% 70% at 50% 48%, transparent 35%, rgba(5,3,2,0.55) 75%, rgba(5,3,2,0.8) 100%)',
           }}
         />
       </div>
@@ -257,23 +260,23 @@ export default function PreviewStage({ config }: { config: PlaqueConfig }) {
               transition: 'transform 0.65s cubic-bezier(0.3, 1.35, 0.4, 1)',
             }}
           >
-            {/* ombra di contatto sul tavolo: stretta e subito sotto, da oggetto appoggiato */}
+            {/* ombra portata sul legno: la sagoma stessa della targhetta,
+                sfocata e sfalsata in basso — da oggetto appoggiato visto dall'alto */}
             <div
               aria-hidden
               style={{
                 position: 'absolute',
-                left: '50%',
-                bottom: plaqueW * 0.02,
-                width: plaqueW * 1.2,
-                height: plaqueW * 0.16,
-                transform: 'translateX(-50%)',
-                borderRadius: '50%',
-                background: 'radial-gradient(ellipse, rgba(0,0,0,0.6) 0%, transparent 65%)',
-                filter: 'blur(6px)',
-                opacity: activeView.dark ? 1 : 0,
+                inset: 0,
+                transform: `scale(${zoom}) translate(${plaqueW * 0.045}px, ${plaqueW * 0.075}px) rotate(-8deg)`,
+                filter: 'blur(9px)',
+                opacity: activeView.dark ? 0.55 : 0,
                 transition: 'opacity 0.6s',
               }}
-            />
+            >
+              <svg viewBox={viewBox} style={{ width: '100%', height: '100%' }}>
+                <path d={shape.path} fill="#000" />
+              </svg>
+            </div>
             <div
               className="relative"
               style={{
