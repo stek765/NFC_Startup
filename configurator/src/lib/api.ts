@@ -11,8 +11,15 @@ export interface QuotePayload {
 
 export const API_BASE: string = import.meta.env.VITE_API_BASE ?? 'http://localhost:8787';
 
-export async function submitQuote(_payload: QuotePayload): Promise<boolean> {
-  // Task 9 sostituisce questo stub con la POST reale a `${API_BASE}/api/quote`
-  await new Promise((r) => setTimeout(r, 600));
-  return true;
+export async function submitQuote(payload: QuotePayload): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/api/quote`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return res.status === 201;
+  } catch {
+    return false;
+  }
 }

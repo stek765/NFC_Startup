@@ -82,3 +82,27 @@ ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 -- Per trovare il Place ID di un ristorante: https://developers.google.com/maps/documentation/places/web-service/place-id
 -- (Place ID Finder) — cerca il locale, copia l'ID (inizia con "ChIJ..."), poi:
 -- UPDATE restaurants SET google_place_id = 'ChIJ...' WHERE name = 'Notte Dì';
+
+-- ============================================================
+-- CONFIGURATORE TARGHETTE (branch custom-nfc, 17/07/2026)
+-- Eseguibile più volte senza danni (idempotente).
+-- ============================================================
+
+create table if not exists quotes (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  restaurant_name text not null,
+  contact text not null,
+  notes text,
+  config jsonb not null,
+  price_shown numeric not null,
+  logo_url text
+);
+
+-- RLS attiva senza policy: nessun accesso anon; scrive/legge solo il Worker (secret key).
+alter table quotes enable row level security;
+
+-- Bucket pubblico per i loghi allegati ai preventivi.
+insert into storage.buckets (id, name, public)
+values ('logos', 'logos', true)
+on conflict (id) do nothing;
