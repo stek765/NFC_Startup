@@ -32,11 +32,15 @@ interface ViewDef {
   zoom: number;
   origin: string;
   dark?: boolean;
+  /** spostamento della targhetta nella scena, in frazioni di larghezza/altezza */
+  offset?: [number, number];
 }
 
 const VIEWS: ViewDef[] = [
   { id: 'front', label: 'Frontale', rotate: 'rotateY(0deg)', zoom: 1, origin: '50% 50%' },
-  { id: 'table', label: 'Sul tavolo', rotate: 'rotateX(56deg) rotateZ(-14deg)', zoom: 1.35, origin: '50% 72%', dark: true },
+  // prospettiva schiacciata come i piatti della foto (camera bassa) e targhetta
+  // spostata sul legno libero in basso: deve sembrare APPOGGIATA, non volante
+  { id: 'table', label: 'Sul tavolo', rotate: 'rotateX(74deg) rotateZ(-16deg)', zoom: 1.25, origin: '50% 55%', dark: true, offset: [-0.06, 0.2] },
   { id: 'diag', label: 'Diagonale', rotate: 'rotateZ(-20deg) rotateY(32deg) rotateX(8deg)', zoom: 1.45, origin: '50% 50%' },
   // coricata di lato, faccia inclinata verso l'alto: si vede lo spessore lungo il bordo
   { id: 'landscape', label: 'Orizzontale', rotate: 'rotateX(64deg) rotateZ(-90deg)', zoom: 1.2, origin: '50% 50%' },
@@ -232,7 +236,7 @@ export default function PreviewStage({ config }: { config: PlaqueConfig }) {
           alt=""
           loading="lazy"
           className="h-full w-full object-cover"
-          style={{ filter: 'brightness(0.8) saturate(0.95)' }}
+          style={{ filter: 'brightness(0.8) saturate(0.95)', objectPosition: '50% 62%' }}
         />
         <div
           className="absolute inset-0"
@@ -245,20 +249,27 @@ export default function PreviewStage({ config }: { config: PlaqueConfig }) {
       <div className="flex flex-col items-center gap-3">
         <div className="flex items-end justify-center">
           <PhoneSilhouette w={PHONE_MM[0] * k} h={PHONE_MM[1] * k} gap={GAP_MM * k} visible={view === 'front'} />
-          <div className="relative" style={{ perspective: '1100px' }}>
-            {/* ombra di contatto sul tavolo */}
+          <div
+            className="relative"
+            style={{
+              perspective: '1100px',
+              transform: `translate(${(activeView.offset?.[0] ?? 0) * bw}px, ${(activeView.offset?.[1] ?? 0) * bh}px)`,
+              transition: 'transform 0.65s cubic-bezier(0.3, 1.35, 0.4, 1)',
+            }}
+          >
+            {/* ombra di contatto sul tavolo: stretta e subito sotto, da oggetto appoggiato */}
             <div
               aria-hidden
               style={{
                 position: 'absolute',
                 left: '50%',
-                bottom: -plaqueW * 0.08,
-                width: plaqueW * 1.35,
-                height: plaqueW * 0.26,
+                bottom: plaqueW * 0.02,
+                width: plaqueW * 1.2,
+                height: plaqueW * 0.16,
                 transform: 'translateX(-50%)',
                 borderRadius: '50%',
-                background: 'radial-gradient(ellipse, rgba(0,0,0,0.55) 0%, transparent 65%)',
-                filter: 'blur(8px)',
+                background: 'radial-gradient(ellipse, rgba(0,0,0,0.6) 0%, transparent 65%)',
+                filter: 'blur(6px)',
                 opacity: activeView.dark ? 1 : 0,
                 transition: 'opacity 0.6s',
               }}
@@ -292,6 +303,23 @@ export default function PreviewStage({ config }: { config: PlaqueConfig }) {
                 </div>
               ))}
               <Preview config={config} widthPx={plaqueW} showCaption={false} />
+              {/* luce calda delle candele sulla faccia, solo nella scena tavolo
+                  (translateZ minimo per stare sopra la faccia senza appiattire il 3D) */}
+              <div
+                aria-hidden
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  transform: 'translateZ(0.6px)',
+                  opacity: activeView.dark ? 0.2 : 0,
+                  transition: 'opacity 0.6s',
+                  pointerEvents: 'none',
+                }}
+              >
+                <svg viewBox={viewBox} style={{ width: '100%', height: '100%' }}>
+                  <path d={shape.path} fill="#b9701d" />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
