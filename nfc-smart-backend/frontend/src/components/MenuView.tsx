@@ -199,7 +199,12 @@ export function MenuView({ onBack }: { onBack: () => void }) {
         </motion.button>
       )}
 
-      {searchOpen && <SearchOverlay onClose={() => setSearchOpen(false)} />}
+      {searchOpen && (
+        <SearchOverlay
+          onClose={() => setSearchOpen(false)}
+          onCustomize={(item, key) => setCustomize({ item, key })}
+        />
+      )}
       <PairingToast />
       {sheetOpen && <SelectionSheet onClose={() => setSheetOpen(false)} />}
       {customize && (

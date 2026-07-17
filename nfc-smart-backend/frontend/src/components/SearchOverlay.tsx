@@ -33,7 +33,13 @@ function search(query: string, lang: Lang): Result[] {
   return results;
 }
 
-export function SearchOverlay({ onClose }: { onClose: () => void }) {
+export function SearchOverlay({
+  onClose,
+  onCustomize,
+}: {
+  onClose: () => void;
+  onCustomize: (item: MenuItem, key: string) => void;
+}) {
   useLockBodyScroll();
   const { lang, t } = useLang();
   const [query, setQuery] = useState('');
@@ -107,9 +113,17 @@ export function SearchOverlay({ onClose }: { onClose: () => void }) {
                 {localizeCategoryName(result.category, lang)}
               </p>
               <div>
-                {result.items.map((item) => (
-                  <DishRow key={item.id} item={item} selectionKey={`${result.category.id}:${item.id}`} />
-                ))}
+                {result.items.map((item) => {
+                  const key = `${result.category.id}:${item.id}`;
+                  return (
+                    <DishRow
+                      key={item.id}
+                      item={item}
+                      selectionKey={key}
+                      onCustomize={result.category.group === 'pizze' ? () => onCustomize(item, key) : undefined}
+                    />
+                  );
+                })}
               </div>
             </div>
           ))
