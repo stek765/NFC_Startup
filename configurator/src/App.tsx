@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import LogoUpload from './components/LogoUpload';
 import Preview from './components/Preview';
 import { Chips, Field, Section, Swatches, Toggle } from './components/controls';
-import { BASE_COLORS, FONTS, MAX_TEXT_LEN, PRINT_COLORS, QR_PRICE, SHAPES, SIZES } from './catalog';
+import { BASE_COLORS, FONTS, LOGO_PRICE, MAX_TEXT_LEN, PRINT_COLORS, QR_PRICE, SHAPES, SIZES } from './catalog';
 import { isReadable } from './lib/readability';
 import { useConfig } from './state/useConfig';
 import type { ShapeId, SizeId } from './types';
@@ -84,7 +85,9 @@ export default function App() {
           </div>
         </Section>
 
-        {/* Task 7: <Section title="Logo"> <LogoUpload .../> </Section> */}
+        <Section title={`Logo (+€${LOGO_PRICE})`}>
+          <LogoUpload value={config.logo} onChange={(v) => set('logo', v)} />
+        </Section>
 
         <Section title="QR code">
           <Toggle label="Aggiungi il QR accanto all'NFC" delta={QR_PRICE} value={config.qr} onChange={(v) => set('qr', v)} />
