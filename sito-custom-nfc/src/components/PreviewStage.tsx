@@ -14,6 +14,12 @@ const PHONE_MM: [number, number] = [71, 147];
 const GAP_MM = 16;
 const THICKNESS_MM = 4;
 
+// Foto d'ambiente per la vista "Sul tavolo" (Unsplash, licenza libera — stesso
+// pattern di nfc-smart-backend/frontend/src/data/images.ts): tavolo scuro di
+// ristorante con candele e bokeh caldo, primo piano libero per la targhetta.
+const TABLE_AMBIANCE =
+  'https://images.unsplash.com/photo-1519756719377-e084f8333a83?fm=jpg&q=70&w=1800&auto=format&fit=crop';
+
 type ViewId = 'front' | 'table' | 'diag' | 'landscape' | 'side';
 
 // Pose stile still-life da scheda prodotto: rotate = posa, zoom = quanto la
@@ -209,17 +215,33 @@ export default function PreviewStage({ config }: { config: PlaqueConfig }) {
 
   return (
     <div ref={outerRef} className="relative flex h-full w-full items-center justify-center">
-      {/* fondale d'atmosfera per la vista "sul tavolo": sera al ristorante */}
+      {/* fondale d'atmosfera per la vista "sul tavolo": vera sera al ristorante
+          (foto + vignettatura scura perché la targhetta resti protagonista) */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           zIndex: -1,
-          background: 'radial-gradient(120% 90% at 50% 30%, #463c2d 0%, #262019 55%, #141210 100%)',
+          backgroundColor: '#141210',
           opacity: activeView.dark ? 1 : 0,
           transition: 'opacity 0.6s',
         }}
-      />
+      >
+        <img
+          src={TABLE_AMBIANCE}
+          alt=""
+          loading="lazy"
+          className="h-full w-full object-cover"
+          style={{ filter: 'brightness(0.8) saturate(0.95)' }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(85% 65% at 50% 52%, transparent 0%, rgba(10,8,5,0.45) 60%, rgba(10,8,5,0.85) 100%)',
+          }}
+        />
+      </div>
       <div className="flex flex-col items-center gap-3">
         <div className="flex items-end justify-center">
           <PhoneSilhouette w={PHONE_MM[0] * k} h={PHONE_MM[1] * k} gap={GAP_MM * k} visible={view === 'front'} />
