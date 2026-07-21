@@ -9,6 +9,7 @@ import { CategoryHeader } from './CategoryHeader';
 import { DishRow } from './DishRow';
 import { DishSheet } from './DishSheet';
 import { LangSwitcher } from './LangSwitcher';
+import { MenuHint } from './MenuHint';
 import { PairingToast } from './PairingToast';
 import { SearchOverlay } from './SearchOverlay';
 import { SelectionButton } from './SelectionButton';
@@ -20,12 +21,8 @@ export function MenuView({ onBack }: { onBack: () => void }) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [headerHidden, setHeaderHidden] = useState(false);
-  const [hintVisible, setHintVisible] = useState(true);
   const [customize, setCustomize] = useState<{ item: (typeof menu)[number]['items'][number]; key: string } | null>(null);
 
-  function dismissHint() {
-    setHintVisible(false);
-  }
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const isClickScrolling = useRef(false);
 
@@ -92,19 +89,6 @@ export function MenuView({ onBack }: { onBack: () => void }) {
           onSelect={handleSelect}
         />
       </motion.div>
-
-      {hintVisible && (
-        <div className="relative z-10 mx-6 mt-5 flex items-start gap-4 border border-gold/40 bg-surface px-4 py-3.5">
-          <p className="min-w-0 flex-1 text-[13px] leading-relaxed text-text">{t.menuHint}</p>
-          <button
-            type="button"
-            onClick={dismissHint}
-            className="shrink-0 pt-0.5 text-[11px] font-medium uppercase tracking-[0.2em] text-gold active:opacity-60"
-          >
-            {t.gotIt}
-          </button>
-        </div>
-      )}
 
       <div className="relative z-10 space-y-12 px-6 pt-4">
         {menu.map((category, i) => {
@@ -190,6 +174,7 @@ export function MenuView({ onBack }: { onBack: () => void }) {
         />
       )}
       <PairingToast />
+      <MenuHint />
       {sheetOpen && <SelectionSheet onClose={() => setSheetOpen(false)} />}
       {customize && (
         <DishSheet item={customize.item} selectionKey={customize.key} onClose={() => setCustomize(null)} />

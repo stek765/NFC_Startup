@@ -25,7 +25,7 @@ export function PairingToast() {
     if (!item?.pairing) return;
     setCurrent({ item, key: lastAdded.key, ts: lastAdded.ts });
     window.clearTimeout(timerRef.current);
-    timerRef.current = window.setTimeout(() => setCurrent(null), 5000);
+    timerRef.current = window.setTimeout(() => setCurrent(null), 10000);
     return () => window.clearTimeout(timerRef.current);
   }, [lastAdded]);
 
