@@ -28,14 +28,14 @@ function DishNameBlock({
 }) {
   return (
     <>
-      <p className="truncate font-display text-[19px] font-medium leading-snug text-text">{name}</p>
+      <span className="block truncate font-display text-[19px] font-medium leading-snug text-text">{name}</span>
       {hasMods && (
-        <p className="mt-0.5 text-[12px] italic leading-relaxed text-gold">
+        <span className="mt-0.5 block text-[12px] italic leading-relaxed text-gold">
           {[
             ...mods.removed.map((r) => `${t.withoutShort} ${r}`),
             ...mods.added.map((a) => `${t.withShort} ${a}`),
           ].join(' · ')}
-        </p>
+        </span>
       )}
     </>
   );
