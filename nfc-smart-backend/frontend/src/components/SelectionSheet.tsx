@@ -2,8 +2,11 @@ import { useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Trash, X } from '@phosphor-icons/react';
 import { useSelection } from '../context/SelectionContext';
+import type { DishMods } from '../context/SelectionContext';
 import { useLang } from '../i18n';
+import type { UiStrings } from '../i18n';
 import { localizeCategoryName } from '../i18n/menu.i18n';
+import type { MenuItem } from '../data/menu';
 import { type PairingGroup, resolveSelection, untakenPairingGroups } from '../lib/pairing';
 import { useLockBodyScroll } from '../lib/useLockBodyScroll';
 import { DrinkSheet } from './DrinkSheet';
@@ -12,7 +15,39 @@ function euro(value: number): string {
   return `€${value.toFixed(2).replace('.', ',')}`;
 }
 
-export function SelectionSheet({ onClose }: { onClose: () => void }) {
+function DishNameBlock({
+  name,
+  mods,
+  hasMods,
+  t,
+}: {
+  name: string;
+  mods: DishMods;
+  hasMods: boolean;
+  t: UiStrings;
+}) {
+  return (
+    <>
+      <p className="truncate font-display text-[19px] font-medium leading-snug text-text">{name}</p>
+      {hasMods && (
+        <p className="mt-0.5 text-[12px] italic leading-relaxed text-gold">
+          {[
+            ...mods.removed.map((r) => `${t.withoutShort} ${r}`),
+            ...mods.added.map((a) => `${t.withShort} ${a}`),
+          ].join(' · ')}
+        </p>
+      )}
+    </>
+  );
+}
+
+export function SelectionSheet({
+  onClose,
+  onCustomize,
+}: {
+  onClose: () => void;
+  onCustomize: (item: MenuItem, key: string) => void;
+}) {
   useLockBodyScroll();
   const { lang, t } = useLang();
   const { selectedKeys, toggle, clear, getMods, isPaired, togglePaired } = useSelection();
@@ -111,16 +146,16 @@ export function SelectionSheet({ onClose }: { onClose: () => void }) {
                             {String(i + 1).padStart(2, '0')}
                           </span>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate font-display text-[19px] font-medium leading-snug text-text">
-                              {item.name}
-                            </p>
-                            {hasMods && (
-                              <p className="mt-0.5 text-[12px] italic leading-relaxed text-gold">
-                                {[
-                                  ...mods.removed.map((r) => `${t.withoutShort} ${r}`),
-                                  ...mods.added.map((a) => `${t.withShort} ${a}`),
-                                ].join(' · ')}
-                              </p>
+                            {category.group === 'pizze' ? (
+                              <button
+                                type="button"
+                                onClick={() => onCustomize(item, key)}
+                                className="block w-full text-left"
+                              >
+                                <DishNameBlock name={item.name} mods={mods} hasMods={hasMods} t={t} />
+                              </button>
+                            ) : (
+                              <DishNameBlock name={item.name} mods={mods} hasMods={hasMods} t={t} />
                             )}
                             <AnimatePresence>
                               {item.pairing && isPaired(key) && (

@@ -175,7 +175,12 @@ export function MenuView({ onBack }: { onBack: () => void }) {
       )}
       <PairingToast />
       <MenuHint />
-      {sheetOpen && <SelectionSheet onClose={() => setSheetOpen(false)} />}
+      {sheetOpen && (
+        <SelectionSheet
+          onClose={() => setSheetOpen(false)}
+          onCustomize={(item, key) => setCustomize({ item, key })}
+        />
+      )}
       {customize && (
         <DishSheet item={customize.item} selectionKey={customize.key} onClose={() => setCustomize(null)} />
       )}
