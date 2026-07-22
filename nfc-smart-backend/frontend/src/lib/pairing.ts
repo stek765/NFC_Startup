@@ -39,3 +39,10 @@ export function groupPairings(entries: SelectionEntry[]): PairingGroup[] {
   }
   return [...groups.values()].sort((a, b) => b.count - a.count);
 }
+
+export function untakenPairingGroups(
+  entries: SelectionEntry[],
+  isPaired: (key: string) => boolean,
+): PairingGroup[] {
+  return groupPairings(entries.filter((e) => !isPaired(e.key)));
+}
