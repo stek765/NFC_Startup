@@ -1,10 +1,12 @@
+import { useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Check, Trash, X } from '@phosphor-icons/react';
+import { Trash, X } from '@phosphor-icons/react';
 import { useSelection } from '../context/SelectionContext';
 import { useLang } from '../i18n';
 import { localizeCategoryName } from '../i18n/menu.i18n';
-import { resolveSelection, untakenPairingGroups } from '../lib/pairing';
+import { type PairingGroup, resolveSelection, untakenPairingGroups } from '../lib/pairing';
 import { useLockBodyScroll } from '../lib/useLockBodyScroll';
+import { DrinkSheet } from './DrinkSheet';
 
 function euro(value: number): string {
   return `€${value.toFixed(2).replace('.', ',')}`;
@@ -18,9 +20,28 @@ export function SelectionSheet({ onClose }: { onClose: () => void }) {
   const pairings = untakenPairingGroups(entries, isPaired);
   const best = pairings[0];
 
+  const [openPicker, setOpenPicker] = useState<string | null>(null);
+  const [openDrink, setOpenDrink] = useState<PairingGroup | null>(null);
+  const [highlightedKey, setHighlightedKey] = useState<string | null>(null);
+  const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  function focusDish(key: string) {
+    setHighlightedKey(key);
+    rowRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => setHighlightedKey((current) => (current === key ? null : current)), 1200);
+  }
+
+  function takeDish(key: string) {
+    togglePaired(key);
+    setOpenPicker(null);
+    setOpenDrink(null);
+    focusDish(key);
+  }
+
   return (
     <AnimatePresence>
       <motion.div
+        key="selection-sheet-overlay"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -79,7 +100,12 @@ export function SelectionSheet({ onClose }: { onClose: () => void }) {
                           </p>
                         )}
                         <div
-                          className={`flex items-start gap-4 py-3.5 ${i === entries.length - 1 ? '' : 'border-b border-border'}`}
+                          ref={(el) => {
+                            rowRefs.current[key] = el;
+                          }}
+                          className={`flex items-start gap-4 rounded-xl px-2 -mx-2 py-3.5 transition-colors duration-500 ${
+                            highlightedKey === key ? 'bg-gold/15' : ''
+                          } ${i === entries.length - 1 ? '' : 'border-b border-border'}`}
                         >
                           <span className="pt-0.5 font-display text-sm font-semibold text-gold">
                             {String(i + 1).padStart(2, '0')}
@@ -142,44 +168,71 @@ export function SelectionSheet({ onClose }: { onClose: () => void }) {
                     <p className="mt-1 text-[12px] text-text-muted">{t.askWaiter}</p>
                     <div className="mt-4 flex flex-col gap-3">
                       {pairings.map((group) => {
-                        const allTaken = group.keys.every((k) => isPaired(k));
+                        const isMulti = group.keys.length > 1;
+                        const pickerOpen = openPicker === group.pairing.label;
                         return (
                           <div
                             key={group.pairing.label}
-                            className="flex items-center gap-3.5 overflow-hidden rounded-2xl border border-border bg-surface p-3"
+                            className="overflow-hidden rounded-2xl border border-border bg-surface"
                           >
-                            <img
-                              src={group.pairing.image}
-                              alt=""
-                              className="h-14 w-14 shrink-0 rounded-xl object-cover"
-                            />
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-baseline gap-2">
-                                <p className="truncate font-display text-[18px] font-semibold leading-tight text-text">
-                                  {group.pairing.label}
-                                </p>
-                                <span className="shrink-0 text-[13px] font-medium tabular-nums text-gold">
-                                  {euro(group.pairing.price)}
-                                </span>
-                              </div>
-                              <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-text-muted">
-                                {t.pairingFor(group.dishes.map((d) => d.name).join(', '))}
-                              </p>
+                            <div className="flex items-center gap-3.5 p-3">
+                              <button
+                                type="button"
+                                onClick={() => setOpenDrink(group)}
+                                className="flex min-w-0 flex-1 items-center gap-3.5 text-left"
+                              >
+                                <img
+                                  src={group.pairing.image}
+                                  alt=""
+                                  className="h-14 w-14 shrink-0 rounded-xl object-cover"
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-baseline gap-2">
+                                    <p className="truncate font-display text-[18px] font-semibold leading-tight text-text">
+                                      {group.pairing.label}
+                                    </p>
+                                    <span className="shrink-0 text-[13px] font-medium tabular-nums text-gold">
+                                      {euro(group.pairing.price)}
+                                    </span>
+                                  </div>
+                                  <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-text-muted">
+                                    {t.pairingFor(group.dishes.map((d) => d.name).join(', '))}
+                                  </p>
+                                </div>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (isMulti) setOpenPicker(pickerOpen ? null : group.pairing.label);
+                                  else takeDish(group.keys[0]);
+                                }}
+                                className="shrink-0 border border-text/60 px-3 py-2.5 text-[10px] font-medium uppercase tracking-[0.18em] text-text active:scale-95"
+                              >
+                                {isMulti ? t.chooseDish : t.takeIt}
+                              </button>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const target = !allTaken;
-                                for (const k of group.keys) {
-                                  if (isPaired(k) !== target) togglePaired(k);
-                                }
-                              }}
-                              className={`shrink-0 px-3 py-2.5 text-[10px] font-medium uppercase tracking-[0.18em] transition active:scale-95 ${
-                                allTaken ? 'bg-text text-bg' : 'border border-text/60 text-text'
-                              }`}
-                            >
-                              {allTaken ? <Check size={13} weight="bold" /> : t.takeIt}
-                            </button>
+                            <AnimatePresence>
+                              {isMulti && pickerOpen && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="overflow-hidden border-t border-border"
+                                >
+                                  {group.dishes.map((dish, idx) => (
+                                    <button
+                                      key={group.keys[idx]}
+                                      type="button"
+                                      onClick={() => takeDish(group.keys[idx])}
+                                      className="flex w-full items-center justify-between border-b border-border/60 px-4 py-3 text-left text-[14px] text-text last:border-b-0 active:bg-border/40"
+                                    >
+                                      {dish.name}
+                                    </button>
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
                           </div>
                         );
                       })}
@@ -199,6 +252,14 @@ export function SelectionSheet({ onClose }: { onClose: () => void }) {
           </div>
         </motion.div>
       </motion.div>
+      {openDrink && (
+        <DrinkSheet
+          key="drink-sheet"
+          group={openDrink}
+          onTake={(key) => takeDish(key)}
+          onClose={() => setOpenDrink(null)}
+        />
+      )}
     </AnimatePresence>
   );
 }
