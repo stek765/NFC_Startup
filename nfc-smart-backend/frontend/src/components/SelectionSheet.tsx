@@ -96,20 +96,24 @@ export function SelectionSheet({ onClose }: { onClose: () => void }) {
                                 ].join(' · ')}
                               </p>
                             )}
-                            {item.pairing && isPaired(key) && (
-                              <button
-                                type="button"
-                                onClick={() => togglePaired(key)}
-                                aria-label={t.removeItem(item.pairing.label)}
-                                className="mt-1 flex items-center gap-1.5 text-[13px] text-text active:opacity-60"
-                              >
-                                <span className="font-display font-medium">
-                                  + {item.pairing.label}
-                                </span>
-                                <span className="tabular-nums text-gold">{euro(item.pairing.price)}</span>
-                                <X size={12} className="text-text-muted" />
-                              </button>
-                            )}
+                            <AnimatePresence>
+                              {item.pairing && isPaired(key) && (
+                                <motion.button
+                                  type="button"
+                                  onClick={() => togglePaired(key)}
+                                  aria-label={t.removeItem(item.pairing.label)}
+                                  initial={{ opacity: 0, scale: 0.85 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.85 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="mt-1.5 flex items-center gap-1.5 rounded-full bg-text px-2.5 py-1 text-[12px] text-bg active:opacity-70"
+                                >
+                                  <span className="font-display font-medium">{item.pairing.label}</span>
+                                  <span className="tabular-nums opacity-80">{euro(item.pairing.price)}</span>
+                                  <X size={12} />
+                                </motion.button>
+                              )}
+                            </AnimatePresence>
                           </div>
                           <button
                             type="button"
