@@ -26,6 +26,8 @@ export interface UiStrings {
   reviewsCta: string;
   ratingLine: (rating: string, count: string) => string;
   takeIt: string;
+  chooseDish: string;
+  addShort: string;
   inList: string;
   waiter: string;
   waiterCalled: string;
@@ -76,6 +78,8 @@ export const ui: Record<Lang, UiStrings> = {
     reviewsCta: 'Valuta anche tu su Google',
     ratingLine: (rating, count) => `${rating} su 5 · ${count} recensioni su Google`,
     takeIt: 'Lo prendo',
+    chooseDish: 'Scegli piatto',
+    addShort: 'Aggiungi',
     inList: 'Nella lista',
     waiter: 'Cameriere',
     waiterCalled: 'In arrivo',
@@ -124,6 +128,8 @@ export const ui: Record<Lang, UiStrings> = {
     reviewsCta: 'Rate us on Google too',
     ratingLine: (rating, count) => `${rating} out of 5 · ${count} Google reviews`,
     takeIt: "I'll have it",
+    chooseDish: 'Pick a dish',
+    addShort: 'Add',
     inList: 'In your list',
     waiter: 'Waiter',
     waiterCalled: 'On the way',
@@ -172,6 +178,8 @@ export const ui: Record<Lang, UiStrings> = {
     reviewsCta: 'Bewerten Sie uns auf Google',
     ratingLine: (rating, count) => `${rating} von 5 · ${count} Google-Rezensionen`,
     takeIt: 'Nehme ich',
+    chooseDish: 'Gericht wählen',
+    addShort: 'Hinzufügen',
     inList: 'In der Liste',
     waiter: 'Kellner',
     waiterCalled: 'Kommt gleich',
