@@ -3,7 +3,7 @@ import { Check, Trash, X } from '@phosphor-icons/react';
 import { useSelection } from '../context/SelectionContext';
 import { useLang } from '../i18n';
 import { localizeCategoryName } from '../i18n/menu.i18n';
-import { groupPairings, resolveSelection } from '../lib/pairing';
+import { resolveSelection, untakenPairingGroups } from '../lib/pairing';
 import { useLockBodyScroll } from '../lib/useLockBodyScroll';
 
 function euro(value: number): string {
@@ -15,7 +15,7 @@ export function SelectionSheet({ onClose }: { onClose: () => void }) {
   const { lang, t } = useLang();
   const { selectedKeys, toggle, clear, getMods, isPaired, togglePaired } = useSelection();
   const entries = resolveSelection(selectedKeys);
-  const pairings = groupPairings(entries);
+  const pairings = untakenPairingGroups(entries, isPaired);
   const best = pairings[0];
 
   return (
@@ -150,12 +150,14 @@ export function SelectionSheet({ onClose }: { onClose: () => void }) {
                               className="h-14 w-14 shrink-0 rounded-xl object-cover"
                             />
                             <div className="min-w-0 flex-1">
-                              <p className="truncate font-display text-[18px] font-semibold leading-tight text-text">
-                                {group.pairing.label}
-                                <span className="ml-2 text-[13px] font-medium tabular-nums text-gold">
+                              <div className="flex items-baseline gap-2">
+                                <p className="truncate font-display text-[18px] font-semibold leading-tight text-text">
+                                  {group.pairing.label}
+                                </p>
+                                <span className="shrink-0 text-[13px] font-medium tabular-nums text-gold">
                                   {euro(group.pairing.price)}
                                 </span>
-                              </p>
+                              </div>
                               <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-text-muted">
                                 {t.pairingFor(group.dishes.map((d) => d.name).join(', '))}
                               </p>
