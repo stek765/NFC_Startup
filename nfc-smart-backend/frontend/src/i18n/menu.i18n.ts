@@ -1,5 +1,6 @@
 import type { Lang } from './index';
 import type { MenuCategory, MenuItem } from '../data/menu';
+import type { DrinkInfo } from '../data/drinkInfo';
 
 type L10nPair = { en: string; de: string };
 interface DishL10n {
@@ -390,6 +391,38 @@ export const dishL10n: Record<string, DishL10n> = {
   'coca-cola-spina': { d: { en: 'Draught — Small €2.80 · Medium €4.20 · 1 litre €9.00', de: 'Vom Fass — Klein €2,80 · Mittel €4,20 · 1 Liter €9,00' } },
   acqua: { d: { en: 'Still or sparkling — Goccia di Carnia, 75 cl', de: 'Still oder sprudelnd — Goccia di Carnia, 75 cl' } },
 };
+
+export const drinkL10n: Record<string, L10nPair> = {
+  Verdicchio: {
+    en: 'Verdicchio is a native white grape variety from the Marche region, grown mainly around the Castelli di Jesi. It produces a pale straw-coloured wine with notes of almond and citrus, and an acidity that cleanses the palate — the natural companion to seafood.',
+    de: 'Verdicchio ist eine autochthone weiße Rebsorte aus den Marken, die vor allem rund um die Castelli di Jesi angebaut wird. Sie ergibt einen strohgelben Wein mit Noten von Mandel und Zitrus und einer Säure, die den Gaumen reinigt — der natürliche Begleiter zu Meeresfrüchten.',
+  },
+  'Cabernet Franc': {
+    en: 'Cabernet Franc is a red grape variety of French origin, also grown today in the Veneto. It gives a medium-bodied wine with berry notes and a herbaceous edge that makes it honest and recognisable — the natural choice for more structured dishes.',
+    de: 'Cabernet Franc ist eine rote Rebsorte französischen Ursprungs, die heute auch im Venetien angebaut wird. Sie ergibt einen mittelkräftigen Wein mit Beerennoten und einer krautigen Note, die ihn ehrlich und wiedererkennbar macht — die natürliche Wahl zu kräftigeren Gerichten.',
+  },
+  'Moretti la rossa': {
+    en: "La Rossa is Birra Moretti's double-malt beer, at 7.2% ABV and a deep amber colour. The double malt gives it a full body and a round sweetness, made to stand up to richer dishes.",
+    de: 'La Rossa ist das Doppelmalzbier von Birra Moretti, mit 7,2% Vol. und einer tiefen Bernsteinfarbe. Das Doppelmalz verleiht ihm einen vollen Körper und eine runde Süße, gemacht für reichhaltigere Gerichte.',
+  },
+  "Foster's": {
+    en: "Foster's is an Australian-style lager, also brewed under licence in Europe, at 5% ABV. Light and easy-drinking, it never gets in the way of the dish it's paired with.",
+    de: "Foster's ist ein Lager im australischen Stil, das auch in Europa in Lizenz gebraut wird, mit 5% Vol. Leicht und bekömmlich, überdeckt es nie das Gericht, das es begleitet.",
+  },
+  'Ichnusa non filtrata': {
+    en: 'Ichnusa non filtrata is brewed in Assemini, Sardinia, and keeps its yeast in suspension instead of removing it through filtration. The result is a hazier beer with a fuller flavour, at 5% ABV.',
+    de: 'Ichnusa non filtrata wird in Assemini auf Sardinien gebraut und behält die Hefe in Schwebe, statt sie herauszufiltern. Das Ergebnis ist ein trüberes Bier mit vollerem Geschmack, mit 5% Vol.',
+  },
+  'Birra scura': {
+    en: "Dark beers owe their colour to roasted malts, which bring notes of caramel and toasted bread. They're the beer that stands up best to smoky or hearty dishes, without feeling heavy.",
+    de: 'Dunkle Biere verdanken ihre Farbe gerösteten Malzen, die Noten von Karamell und geröstetem Brot mitbringen. Sie sind das Bier, das rauchigen oder deftigen Gerichten am besten standhält, ohne schwer zu wirken.',
+  },
+};
+
+export function localizeDrinkDescription(info: DrinkInfo, lang: Lang): string {
+  if (lang === 'it') return info.description;
+  return drinkL10n[info.label]?.[lang] ?? info.description;
+}
 
 export function localizeCategoryName(category: MenuCategory, lang: Lang): string {
   if (lang === 'it') return category.name;
