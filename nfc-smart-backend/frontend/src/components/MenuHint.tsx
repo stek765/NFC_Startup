@@ -25,7 +25,7 @@ export function MenuHint() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, transition: { duration: 0.22 } }}
             transition={reduceMotion ? { duration: 0.3 } : { type: 'spring', stiffness: 240, damping: 16 }}
-            className="inverted pointer-events-auto relative max-w-[300px] rounded-3xl border border-gold/30 bg-bg px-6 py-6 text-center shadow-[0_24px_70px_rgba(0,0,0,0.5)]"
+            className="inverted pointer-events-auto relative max-w-[330px] rounded-3xl border border-gold/30 bg-bg px-6 py-7 text-center shadow-[0_24px_70px_rgba(0,0,0,0.5)]"
           >
             {!reduceMotion && (
               <motion.span
@@ -36,11 +36,11 @@ export function MenuHint() {
                 transition={{ duration: 0.9, ease: 'easeOut' }}
               />
             )}
-            <p className="text-[13px] leading-relaxed text-text">{t.menuHint}</p>
+            <p className="text-[17px] font-medium leading-snug text-text">{t.menuHint}</p>
             <button
               type="button"
               onClick={dismiss}
-              className="mt-4 text-[11px] font-medium uppercase tracking-[0.2em] text-gold active:opacity-60"
+              className="mt-5 px-3 py-1.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-gold active:opacity-60"
             >
               {t.gotIt}
             </button>

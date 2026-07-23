@@ -1,13 +1,12 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Trash, X } from '@phosphor-icons/react';
+import { CaretRight, PencilSimple, Trash, X } from '@phosphor-icons/react';
 import { useSelection } from '../context/SelectionContext';
 import type { DishMods } from '../context/SelectionContext';
 import { useLang } from '../i18n';
-import type { UiStrings } from '../i18n';
 import { localizeCategoryName } from '../i18n/menu.i18n';
 import type { MenuItem } from '../data/menu';
-import { type PairingGroup, resolveSelection, untakenPairingGroups } from '../lib/pairing';
+import { type PairingGroup, pairingTint, resolveSelection, untakenPairingGroups } from '../lib/pairing';
 import { useLockBodyScroll } from '../lib/useLockBodyScroll';
 import { DrinkSheet } from './DrinkSheet';
 
@@ -15,26 +14,22 @@ function euro(value: number): string {
   return `€${value.toFixed(2).replace('.', ',')}`;
 }
 
-function DishNameBlock({
-  name,
-  mods,
-  hasMods,
-  t,
-}: {
-  name: string;
-  mods: DishMods;
-  hasMods: boolean;
-  t: UiStrings;
-}) {
+function DishNameBlock({ name, mods, hasMods }: { name: string; mods: DishMods; hasMods: boolean }) {
   return (
     <>
-      <span className="block truncate font-display text-[19px] font-medium leading-snug text-text">{name}</span>
+      <span className="block font-display text-[19px] font-medium leading-snug text-text">{name}</span>
       {hasMods && (
-        <span className="mt-0.5 block text-[12px] italic leading-relaxed text-gold">
-          {[
-            ...mods.removed.map((r) => `${t.withoutShort} ${r}`),
-            ...mods.added.map((a) => `${t.withShort} ${a}`),
-          ].join(' · ')}
+        <span className="mt-1 block">
+          {mods.removed.length > 0 && (
+            <span className="block text-[13px] leading-relaxed text-text-muted line-through">
+              − {mods.removed.join(' · ')}
+            </span>
+          )}
+          {mods.added.length > 0 && (
+            <span className="mt-0.5 block text-[13px] font-semibold leading-relaxed text-gold">
+              + {mods.added.join(' · ')}
+            </span>
+          )}
         </span>
       )}
     </>
@@ -53,30 +48,14 @@ export function SelectionSheet({
   const { selectedKeys, toggle, clear, getMods, isPaired, togglePaired } = useSelection();
   const entries = resolveSelection(selectedKeys);
   const pairings = untakenPairingGroups(entries, isPaired);
-  const best = pairings[0];
 
-  const [openPicker, setOpenPicker] = useState<string | null>(null);
   const [openDrink, setOpenDrink] = useState<PairingGroup | null>(null);
-  const [highlightedKey, setHighlightedKey] = useState<string | null>(null);
-  const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-  function focusDish(key: string) {
-    setHighlightedKey(key);
-    rowRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    setTimeout(() => setHighlightedKey((current) => (current === key ? null : current)), 1200);
-  }
-
-  function takeDish(key: string) {
-    togglePaired(key);
-    setOpenPicker(null);
-    setOpenDrink(null);
-    focusDish(key);
-  }
 
   return (
-    <AnimatePresence>
-      <motion.div
-        key="selection-sheet-overlay"
+    <>
+      <AnimatePresence>
+        <motion.div
+          key="selection-sheet-overlay"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -85,6 +64,7 @@ export function SelectionSheet({
         onClick={onClose}
       >
         <motion.div
+          layout
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
@@ -129,33 +109,30 @@ export function SelectionSheet({
                       <div key={key}>
                         {isNewCategory && (
                           <p
-                            className={`${i === 0 ? '' : 'mt-6'} mb-1.5 text-[10px] font-medium uppercase tracking-[0.3em] text-text-muted`}
+                            className={`${i === 0 ? '' : 'mt-7'} mb-2 text-[13px] font-semibold uppercase tracking-[0.25em] text-text`}
                           >
                             {localizeCategoryName(category, lang)}
                           </p>
                         )}
                         <div
-                          ref={(el) => {
-                            rowRefs.current[key] = el;
-                          }}
-                          className={`flex items-start gap-4 rounded-xl px-2 -mx-2 py-3.5 transition-colors duration-500 ${
-                            highlightedKey === key ? 'bg-gold/15' : ''
-                          } ${i === entries.length - 1 ? '' : 'border-b border-border'}`}
+                          className={`flex items-start gap-4 px-2 -mx-2 py-3.5 ${
+                            i === entries.length - 1 ? '' : 'border-b border-border'
+                          }`}
                         >
                           <span className="pt-0.5 font-display text-sm font-semibold text-gold">
                             {String(i + 1).padStart(2, '0')}
                           </span>
                           <div className="min-w-0 flex-1">
                             {category.group === 'pizze' ? (
-                              <button
-                                type="button"
-                                onClick={() => onCustomize(item, key)}
-                                className="block w-full text-left"
-                              >
-                                <DishNameBlock name={item.name} mods={mods} hasMods={hasMods} t={t} />
+                              <button type="button" onClick={() => onCustomize(item, key)} className="block w-full text-left">
+                                <DishNameBlock name={item.name} mods={mods} hasMods={hasMods} />
+                                <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-gold/50 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-gold">
+                                  <PencilSimple size={11} weight="bold" />
+                                  {t.edit}
+                                </span>
                               </button>
                             ) : (
-                              <DishNameBlock name={item.name} mods={mods} hasMods={hasMods} t={t} />
+                              <DishNameBlock name={item.name} mods={mods} hasMods={hasMods} />
                             )}
                             <AnimatePresence>
                               {item.pairing && isPaired(key) && (
@@ -167,7 +144,11 @@ export function SelectionSheet({
                                   animate={{ opacity: 1, scale: 1 }}
                                   exit={{ opacity: 0, scale: 0.85 }}
                                   transition={{ duration: 0.2 }}
-                                  className="mt-1.5 flex items-center gap-1.5 rounded-full bg-text px-2.5 py-1 text-[12px] text-bg active:opacity-70"
+                                  style={{
+                                    backgroundColor: pairingTint(item.pairing.label).bg,
+                                    color: pairingTint(item.pairing.label).text,
+                                  }}
+                                  className="mt-1.5 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] active:opacity-70"
                                 >
                                   <span className="font-display font-medium">{item.pairing.label}</span>
                                   <span className="tabular-nums opacity-80">{euro(item.pairing.price)}</span>
@@ -190,8 +171,9 @@ export function SelectionSheet({
                   })}
                 </div>
 
-                {best && (
+                {entries.length > 0 && (
                   <motion.div
+                    layout
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
@@ -200,77 +182,39 @@ export function SelectionSheet({
                     <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-gold">
                       {t.houseTip}
                     </p>
-                    <p className="mt-1 text-[12px] text-text-muted">{t.askWaiter}</p>
+                    <p className="mt-1 text-[12px] text-text-muted">
+                      {pairings.length > 0 ? t.askWaiter : t.noMorePairings}
+                    </p>
                     <div className="mt-4 flex flex-col gap-3">
-                      {pairings.map((group) => {
-                        const isMulti = group.keys.length > 1;
-                        const pickerOpen = openPicker === group.pairing.label;
-                        return (
-                          <div
-                            key={group.pairing.label}
-                            className="overflow-hidden rounded-2xl border border-border bg-surface"
-                          >
-                            <div className="flex items-center gap-3.5 p-3">
-                              <button
-                                type="button"
-                                onClick={() => setOpenDrink(group)}
-                                className="flex min-w-0 flex-1 items-center gap-3.5 text-left"
-                              >
-                                <img
-                                  src={group.pairing.image}
-                                  alt=""
-                                  className="h-14 w-14 shrink-0 rounded-xl object-cover"
-                                />
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-baseline gap-2">
-                                    <p className="truncate font-display text-[18px] font-semibold leading-tight text-text">
-                                      {group.pairing.label}
-                                    </p>
-                                    <span className="shrink-0 text-[13px] font-medium tabular-nums text-gold">
-                                      {euro(group.pairing.price)}
-                                    </span>
-                                  </div>
-                                  <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-text-muted">
-                                    {t.pairingFor(group.dishes.map((d) => d.name).join(', '))}
-                                  </p>
-                                </div>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (isMulti) setOpenPicker(pickerOpen ? null : group.pairing.label);
-                                  else takeDish(group.keys[0]);
-                                }}
-                                className="shrink-0 border border-text/60 px-3 py-2.5 text-[10px] font-medium uppercase tracking-[0.18em] text-text active:scale-95"
-                              >
-                                {isMulti ? t.chooseDish : t.takeIt}
-                              </button>
-                            </div>
-                            <AnimatePresence>
-                              {isMulti && pickerOpen && (
-                                <motion.div
-                                  initial={{ height: 0, opacity: 0 }}
-                                  animate={{ height: 'auto', opacity: 1 }}
-                                  exit={{ height: 0, opacity: 0 }}
-                                  transition={{ duration: 0.2 }}
-                                  className="overflow-hidden border-t border-border"
-                                >
-                                  {group.dishes.map((dish, idx) => (
-                                    <button
-                                      key={group.keys[idx]}
-                                      type="button"
-                                      onClick={() => takeDish(group.keys[idx])}
-                                      className="flex w-full items-center justify-between border-b border-border/60 px-4 py-3 text-left text-[14px] text-text last:border-b-0 active:bg-border/40"
-                                    >
-                                      {dish.name}
-                                    </button>
-                                  ))}
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
+                      {pairings.map((group) => (
+                        <button
+                          key={group.pairing.label}
+                          type="button"
+                          onClick={() => setOpenDrink(group)}
+                          className="flex items-center gap-3.5 overflow-hidden rounded-2xl border border-border bg-surface p-3 text-left active:opacity-80"
+                        >
+                          <img
+                            src={group.pairing.image}
+                            alt=""
+                            className="h-16 w-16 shrink-0 rounded-xl object-cover"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-display text-[18px] font-semibold leading-tight text-text">
+                              {group.pairing.label}
+                              <span className="ml-2 text-[13px] font-medium tabular-nums text-gold">
+                                {euro(group.pairing.price)}
+                              </span>
+                            </p>
+                            <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-text-muted">
+                              {t.pairingFor(group.dishes.map((d) => d.name).join(', '))}
+                            </p>
+                            <span className="mt-1.5 flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.18em] text-gold">
+                              {t.discover}
+                              <CaretRight size={12} weight="bold" />
+                            </span>
                           </div>
-                        );
-                      })}
+                        </button>
+                      ))}
                     </div>
                   </motion.div>
                 )}
@@ -278,8 +222,9 @@ export function SelectionSheet({
                 <button
                   type="button"
                   onClick={clear}
-                  className="mt-7 w-full border border-border py-3.5 text-[11px] font-normal uppercase tracking-[0.3em] text-text-muted active:scale-[0.98]"
+                  className="mt-7 flex w-full items-center justify-center gap-2 border border-text/50 py-3.5 text-[12px] font-medium uppercase tracking-[0.3em] text-text active:scale-[0.98]"
                 >
+                  <Trash size={15} />
                   {t.clearList}
                 </button>
               </>
@@ -287,14 +232,8 @@ export function SelectionSheet({
           </div>
         </motion.div>
       </motion.div>
-      {openDrink && (
-        <DrinkSheet
-          key="drink-sheet"
-          group={openDrink}
-          onTake={(key) => takeDish(key)}
-          onClose={() => setOpenDrink(null)}
-        />
-      )}
-    </AnimatePresence>
+      </AnimatePresence>
+      <DrinkSheet group={openDrink} onClose={() => setOpenDrink(null)} />
+    </>
   );
 }

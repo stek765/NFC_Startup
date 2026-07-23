@@ -1,6 +1,6 @@
 {
   "name": "nfc-smart-backend",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Backend serverless per NFC Smart con Cloudflare Workers, Supabase e Telegram",
   "main": "src/index.ts",
   "scripts": {

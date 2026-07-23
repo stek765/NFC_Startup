@@ -1,5 +1,4 @@
 import { motion } from 'motion/react';
-import { restaurantMotto } from '../data/menu';
 import { useLang } from '../i18n';
 import { LangSwitcher } from './LangSwitcher';
 
@@ -59,7 +58,7 @@ export function Hero({ onOpenMenu, actions }: { onOpenMenu: () => void; actions?
           transition={{ duration: 0.9, delay: 0.85, ease }}
           className="mt-8 max-w-[30ch] font-display text-[20px] font-normal italic leading-snug text-text/80"
         >
-          {restaurantMotto}
+          {t.heroMotto}
         </motion.p>
 
         <motion.p

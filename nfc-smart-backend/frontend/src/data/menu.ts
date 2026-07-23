@@ -24,7 +24,6 @@ export interface MenuCategory {
 
 export const restaurantName = 'Notte Dì';
 export const restaurantTagline = 'Pizzeria, Verona';
-export const restaurantMotto = 'Ingredienti scelti, lunga lievitazione, per un’esperienza leggera e piena di gusto.';
 export const restaurantSignature = 'Pizzeria Notte Dì · Verona';
 
 const verdicchio: (note: string) => Pairing = (note) => ({ label: 'Verdicchio', note, image: images.whiteWine, price: 3.2 });

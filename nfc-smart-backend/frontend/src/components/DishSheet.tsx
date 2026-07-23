@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Check, X } from '@phosphor-icons/react';
+import { Check, HandTap, X } from '@phosphor-icons/react';
 import { EXTRA_INGREDIENTS, type MenuItem } from '../data/menu';
 import { useSelection } from '../context/SelectionContext';
 import { useLang } from '../i18n';
@@ -15,26 +16,45 @@ function ingredientsOf(item: MenuItem): string[] {
 function Chip({
   label,
   state,
+  demo,
   onTap,
 }: {
   label: string;
   state: 'normal' | 'removed' | 'added';
+  demo?: boolean;
   onTap: () => void;
 }) {
+  const showRemoved = state === 'removed' || demo;
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onTap}
-      className={`border px-3.5 py-2 text-[13px] transition active:scale-95 ${
-        state === 'removed'
+      animate={demo ? { scale: [1, 0.88, 1] } : { scale: 1 }}
+      transition={{ duration: 0.5, times: [0, 0.4, 1] }}
+      className={`relative border px-3.5 py-2 text-[13px] transition active:scale-95 ${
+        showRemoved
           ? 'border-border text-text-muted/70 line-through'
           : state === 'added'
             ? 'border-text bg-text text-bg'
             : 'border-border text-text'
       }`}
     >
+      <AnimatePresence>
+        {demo && (
+          <motion.span
+            aria-hidden
+            initial={{ opacity: 0, scale: 0.6, y: 6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            transition={{ duration: 0.25 }}
+            className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-gold text-bg shadow-[0_4px_12px_rgba(154,123,79,0.5)]"
+          >
+            <HandTap size={15} weight="fill" />
+          </motion.span>
+        )}
+      </AnimatePresence>
       {label}
-    </button>
+    </motion.button>
   );
 }
 
@@ -56,6 +76,21 @@ export function DishSheet({
   const extras = EXTRA_INGREDIENTS.filter(
     (extra) => !ingredients.some((ing) => ing.toLowerCase().includes(extra.toLowerCase())),
   );
+
+  // First time someone opens this dish's editor, briefly "tap" the first
+  // ingredient by itself to show what removing one looks like — doesn't
+  // touch real selection state, purely a demonstration.
+  const [demoOn, setDemoOn] = useState(false);
+  useEffect(() => {
+    if (mods.removed.length > 0 || mods.added.length > 0) return;
+    const showTimer = window.setTimeout(() => setDemoOn(true), 700);
+    const hideTimer = window.setTimeout(() => setDemoOn(false), 2000);
+    return () => {
+      window.clearTimeout(showTimer);
+      window.clearTimeout(hideTimer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function toggleRemoved(ing: string) {
     const removed = mods.removed.includes(ing)
@@ -115,15 +150,19 @@ export function DishSheet({
           >
             {ingredients.length > 0 && (
               <>
-                <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-gold">
-                  {t.ingredientsLabel}
+                <p className="flex flex-wrap items-baseline gap-x-2">
+                  <span className="text-[11px] font-medium uppercase tracking-[0.3em] text-gold">
+                    {t.ingredientsLabel}
+                  </span>
+                  <span className="text-[13px] text-text-muted">({t.tapToRemove})</span>
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {ingredients.map((ing) => (
+                  {ingredients.map((ing, i) => (
                     <Chip
                       key={ing}
                       label={ing}
                       state={mods.removed.includes(ing) ? 'removed' : 'normal'}
+                      demo={i === 0 && demoOn}
                       onTap={() => toggleRemoved(ing)}
                     />
                   ))}

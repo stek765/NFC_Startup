@@ -7,6 +7,7 @@ import { localizeCategoryName } from '../i18n/menu.i18n';
 import { CategoryTabs } from './CategoryTabs';
 import { CategoryHeader } from './CategoryHeader';
 import { DishRow } from './DishRow';
+import { SectionDivider } from './SectionDivider';
 import { DishSheet } from './DishSheet';
 import { LangSwitcher } from './LangSwitcher';
 import { MenuHint } from './MenuHint';
@@ -84,7 +85,7 @@ export function MenuView({ onBack }: { onBack: () => void }) {
           </div>
         </div>
         <CategoryTabs
-          categories={menu.map((c) => ({ id: c.id, name: localizeCategoryName(c, lang) }))}
+          categories={menu.map((c) => ({ id: c.id, name: localizeCategoryName(c, lang), group: c.group }))}
           activeId={activeId}
           onSelect={handleSelect}
         />
@@ -93,8 +94,11 @@ export function MenuView({ onBack }: { onBack: () => void }) {
       <div className="relative z-10 space-y-12 px-6 pt-4">
         {menu.map((category, i) => {
           const isNewGroup = i === 0 || menu[i - 1].group !== category.group;
+          const showVine = i > 0 && i % 4 === 0;
+          const vineSide = showVine ? (Math.floor(i / 4) % 2 === 0 ? 'left' : 'right') : undefined;
           return (
             <div key={category.id}>
+              {i > 0 && <SectionDivider vineSide={vineSide} />}
               {isNewGroup && (
                 <div className="-mx-6 overflow-hidden pb-2 pt-6">
                   <motion.p

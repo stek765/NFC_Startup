@@ -8,6 +8,7 @@ const STORAGE_KEY = 'nfc-menu-lang';
 
 export interface UiStrings {
   browseMenu: string;
+  heroMotto: string;
   headlineChoose: string;
   headlineGlass: string;
   reviews: string;
@@ -19,6 +20,7 @@ export interface UiStrings {
   gotIt: string;
   askWaiter: string;
   ingredientsLabel: string;
+  tapToRemove: string;
   extrasLabel: string;
   withoutShort: string;
   withShort: string;
@@ -26,7 +28,8 @@ export interface UiStrings {
   reviewsCta: string;
   ratingLine: (rating: string, count: string) => string;
   takeIt: string;
-  chooseDish: string;
+  discover: string;
+  edit: string;
   addShort: string;
   inList: string;
   waiter: string;
@@ -44,12 +47,12 @@ export interface UiStrings {
   yourSelection: string;
   selectionHint: string;
   houseTip: string;
+  noMorePairings: string;
   pairingFor: (dishes: string) => string;
   emptySelection: string;
   clearList: string;
   removeItem: (name: string) => string;
   addToSelection: string;
-  removeFromSelection: string;
   closeSearch: string;
   groups: Record<'pizze' | 'cucina' | 'bevande', string>;
   signOff: string;
@@ -60,6 +63,7 @@ export interface UiStrings {
 export const ui: Record<Lang, UiStrings> = {
   it: {
     browseMenu: 'Sfoglia il menu',
+    heroMotto: 'Ingredienti scelti, lunga lievitazione, per un’esperienza leggera e piena di gusto.',
     headlineChoose: 'Manca solo il profumo.',
     headlineGlass: 'Ogni piatto ha il suo bicchiere.',
     reviews: 'Recensioni',
@@ -67,10 +71,11 @@ export const ui: Record<Lang, UiStrings> = {
     reviewSheetBody: 'Una recensione su Google è il modo più semplice per ringraziare la cucina: bastano due tocchi.',
     reviewSheetCta: 'Lascia una recensione',
     reviewSheetDismiss: 'Magari dopo',
-    menuHint: 'Tocca i piatti per ricordarteli: l’ordine lo prende il cameriere.',
+    menuHint: 'Il menu è solo un promemoria. L’ordine lo prende il cameriere.',
     gotIt: 'Ho capito',
     askWaiter: 'Da chiedere al cameriere, se vi va',
     ingredientsLabel: 'Ingredienti',
+    tapToRemove: 'tocca per rimuovere',
     extrasLabel: 'Aggiunte',
     withoutShort: 'senza',
     withShort: 'con',
@@ -78,7 +83,8 @@ export const ui: Record<Lang, UiStrings> = {
     reviewsCta: 'Valuta anche tu su Google',
     ratingLine: (rating, count) => `${rating} su 5 · ${count} recensioni su Google`,
     takeIt: 'Lo prendo',
-    chooseDish: 'Scegli piatto',
+    discover: 'Scopri',
+    edit: 'Modifica',
     addShort: 'Aggiungi',
     inList: 'Nella lista',
     waiter: 'Cameriere',
@@ -96,12 +102,12 @@ export const ui: Record<Lang, UiStrings> = {
     yourSelection: 'La tua selezione',
     selectionHint: 'Quello che ti è piaciuto, a portata di mano — senza risfogliare il menu.',
     houseTip: 'Il consiglio della casa',
+    noMorePairings: 'Nessun altro abbinamento da proporre, per ora.',
     pairingFor: (dishes) => `Per ${dishes}`,
     emptySelection: 'Spunta i piatti che ti tentano: li ritrovi qui, senza risfogliare il menu.',
     clearList: 'Svuota lista',
     removeItem: (name) => `Rimuovi ${name}`,
     addToSelection: 'Aggiungi alla selezione',
-    removeFromSelection: 'Rimuovi dalla selezione',
     closeSearch: 'Chiudi ricerca',
     groups: { pizze: 'Pizze', cucina: 'Cucina', bevande: 'Da Bere' },
     signOff: 'Nella certezza che passerete un’ottima serata, vi auguriamo buon appetito.',
@@ -110,6 +116,7 @@ export const ui: Record<Lang, UiStrings> = {
   },
   en: {
     browseMenu: 'Browse the menu',
+    heroMotto: "Selected ingredients, long fermentation, for a dish that's light and full of flavour.",
     headlineChoose: 'Only the smell is missing.',
     headlineGlass: 'Every dish has its glass.',
     reviews: 'Reviews',
@@ -117,10 +124,11 @@ export const ui: Record<Lang, UiStrings> = {
     reviewSheetBody: 'A Google review is the easiest way to thank the kitchen — it takes two taps.',
     reviewSheetCta: 'Leave a review',
     reviewSheetDismiss: 'Maybe later',
-    menuHint: "Tap the dishes to remember them — your waiter takes the actual order.",
+    menuHint: 'The menu is just a memory aid. The waiter takes your actual order.',
     gotIt: 'Got it',
     askWaiter: 'Just ask your waiter, if you like',
     ingredientsLabel: 'Ingredients',
+    tapToRemove: 'tap to remove',
     extrasLabel: 'Extras',
     withoutShort: 'no',
     withShort: 'with',
@@ -128,7 +136,8 @@ export const ui: Record<Lang, UiStrings> = {
     reviewsCta: 'Rate us on Google too',
     ratingLine: (rating, count) => `${rating} out of 5 · ${count} Google reviews`,
     takeIt: "I'll have it",
-    chooseDish: 'Pick a dish',
+    discover: 'Discover',
+    edit: 'Edit',
     addShort: 'Add',
     inList: 'In your list',
     waiter: 'Waiter',
@@ -146,12 +155,12 @@ export const ui: Record<Lang, UiStrings> = {
     yourSelection: 'Your selection',
     selectionHint: 'Everything you liked, at hand — no browsing back through the menu.',
     houseTip: 'The house recommendation',
+    noMorePairings: 'No other pairing to suggest, for now.',
     pairingFor: (dishes) => `For ${dishes}`,
     emptySelection: "Tick the dishes you fancy: they'll be right here, no need to browse again.",
     clearList: 'Clear list',
     removeItem: (name) => `Remove ${name}`,
     addToSelection: 'Add to selection',
-    removeFromSelection: 'Remove from selection',
     closeSearch: 'Close search',
     groups: { pizze: 'Pizzas', cucina: 'Kitchen', bevande: 'Drinks' },
     signOff: 'Certain you’ll have a wonderful evening, we wish you buon appetito.',
@@ -160,6 +169,7 @@ export const ui: Record<Lang, UiStrings> = {
   },
   de: {
     browseMenu: 'Zur Speisekarte',
+    heroMotto: 'Ausgewählte Zutaten, lange Teigreife, für ein leichtes Erlebnis voller Geschmack.',
     headlineChoose: 'Nur der Duft fehlt.',
     headlineGlass: 'Jedes Gericht hat sein Glas.',
     reviews: 'Bewertungen',
@@ -167,10 +177,11 @@ export const ui: Record<Lang, UiStrings> = {
     reviewSheetBody: 'Eine Google-Bewertung ist der einfachste Dank an die Küche — zwei Fingertipps genügen.',
     reviewSheetCta: 'Bewertung schreiben',
     reviewSheetDismiss: 'Vielleicht später',
-    menuHint: 'Tippen Sie Gerichte an, um sie sich zu merken – die Bestellung nimmt Ihr Kellner auf.',
+    menuHint: 'Die Karte ist nur eine Gedächtnisstütze. Die Bestellung nimmt der Kellner auf.',
     gotIt: 'Verstanden',
     askWaiter: 'Fragen Sie einfach den Kellner',
     ingredientsLabel: 'Zutaten',
+    tapToRemove: 'zum Entfernen tippen',
     extrasLabel: 'Extras',
     withoutShort: 'ohne',
     withShort: 'mit',
@@ -178,7 +189,8 @@ export const ui: Record<Lang, UiStrings> = {
     reviewsCta: 'Bewerten Sie uns auf Google',
     ratingLine: (rating, count) => `${rating} von 5 · ${count} Google-Rezensionen`,
     takeIt: 'Nehme ich',
-    chooseDish: 'Gericht wählen',
+    discover: 'Entdecken',
+    edit: 'Bearbeiten',
     addShort: 'Hinzufügen',
     inList: 'In der Liste',
     waiter: 'Kellner',
@@ -196,12 +208,12 @@ export const ui: Record<Lang, UiStrings> = {
     yourSelection: 'Deine Auswahl',
     selectionHint: 'Alles, was Ihnen gefallen hat, auf einen Blick — ohne erneutes Blättern.',
     houseTip: 'Die Empfehlung des Hauses',
+    noMorePairings: 'Im Moment keine weitere Empfehlung.',
     pairingFor: (dishes) => `Für ${dishes}`,
     emptySelection: 'Haken Sie an, was Sie reizt: Sie finden es hier wieder, ohne erneut zu blättern.',
     clearList: 'Liste leeren',
     removeItem: (name) => `${name} entfernen`,
     addToSelection: 'Zur Auswahl hinzufügen',
-    removeFromSelection: 'Aus der Auswahl entfernen',
     closeSearch: 'Suche schließen',
     groups: { pizze: 'Pizzen', cucina: 'Küche', bevande: 'Getränke' },
     signOff: 'Wir sind sicher, dass ihr einen wunderbaren Abend verbringt: buon appetito.',
