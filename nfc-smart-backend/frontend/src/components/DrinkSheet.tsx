@@ -6,6 +6,7 @@ import { useLang } from '../i18n';
 import { localizeDrinkDescription } from '../i18n/menu.i18n';
 import type { PairingGroup } from '../lib/pairing';
 import { useLockBodyScroll } from '../lib/useLockBodyScroll';
+import { useSheetDrag } from '../lib/useSheetDrag';
 
 function euro(value: number): string {
   return `€${value.toFixed(2).replace('.', ',')}`;
@@ -19,6 +20,7 @@ export function DrinkSheet({
   onClose: () => void;
 }) {
   useLockBodyScroll(group !== null);
+  const { startDrag, panelProps } = useSheetDrag(onClose);
   const { lang, t } = useLang();
   const { isPaired, togglePaired } = useSelection();
   const info = group ? getDrinkInfo(group.pairing.label) : undefined;
@@ -36,6 +38,7 @@ export function DrinkSheet({
           onClick={onClose}
         >
           <motion.div
+            {...panelProps}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -43,7 +46,9 @@ export function DrinkSheet({
             onClick={(e) => e.stopPropagation()}
             className="flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-3xl bg-bg"
           >
-            <div className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-border" />
+            <div onPointerDown={startDrag} className="shrink-0 touch-none py-3" style={{ cursor: 'grab' }}>
+              <div className="mx-auto h-1 w-10 rounded-full bg-border" />
+            </div>
             <div className="shrink-0 px-6 pt-4">
               <div className="flex items-start justify-between gap-4">
                 <h2 className="font-display text-[28px] font-semibold leading-tight text-text">

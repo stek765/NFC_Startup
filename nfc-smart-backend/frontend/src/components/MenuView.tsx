@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValueEvent, useScroll } from 'motion/react';
-import { ArrowLeft, MagnifyingGlass } from '@phosphor-icons/react';
+import { ArrowLeft, List } from '@phosphor-icons/react';
+import type { Restaurant } from '../types';
 import { menu, restaurantName } from '../data/menu';
 import { useLang } from '../i18n';
 import { localizeCategoryName } from '../i18n/menu.i18n';
@@ -10,17 +11,29 @@ import { DishRow } from './DishRow';
 import { SectionDivider } from './SectionDivider';
 import { DishSheet } from './DishSheet';
 import { LangSwitcher } from './LangSwitcher';
+import { MenuActionsSheet } from './MenuActionsSheet';
 import { MenuHint } from './MenuHint';
 import { PairingToast } from './PairingToast';
 import { SearchOverlay } from './SearchOverlay';
 import { SelectionButton } from './SelectionButton';
 import { SelectionSheet } from './SelectionSheet';
 
-export function MenuView({ onBack }: { onBack: () => void }) {
+export function MenuView({
+  restaurant,
+  onBack,
+  onWifiClick,
+  onReviewsClick,
+}: {
+  restaurant: Restaurant;
+  onBack: () => void;
+  onWifiClick: () => void;
+  onReviewsClick: () => void;
+}) {
   const { lang, t } = useLang();
   const [activeId, setActiveId] = useState(menu[0].id);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
   const [headerHidden, setHeaderHidden] = useState(false);
   const [customize, setCustomize] = useState<{ item: (typeof menu)[number]['items'][number]; key: string } | null>(null);
 
@@ -150,23 +163,23 @@ export function MenuView({ onBack }: { onBack: () => void }) {
 
       <SelectionButton onOpen={() => setSheetOpen(true)} />
 
-      {!searchOpen && (
+      {!searchOpen && !actionsOpen && (
         <motion.button
           type="button"
-          onClick={() => setSearchOpen(true)}
-          aria-label={t.searchAria}
+          onClick={() => setActionsOpen(true)}
+          aria-label={t.moreOptions}
           initial={{ opacity: 0, scale: 0.85 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, delay: 0.3 }}
-          className="fixed left-5 z-[45] flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-ink shadow-[0_10px_30px_rgba(28,26,21,0.3)] active:scale-95"
+          className="fixed left-5 z-[45] flex h-16 w-16 items-center justify-center rounded-full bg-text text-bg shadow-[0_10px_30px_rgba(28,26,21,0.4)] active:scale-95"
           style={{ bottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
         >
-          <MagnifyingGlass size={22} weight="light" />
+          <List size={26} weight="bold" />
           <motion.span
             aria-hidden
-            className="absolute inset-0 rounded-full border border-gold"
-            animate={{ scale: [1, 1.45], opacity: [0.8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeOut', repeatDelay: 1.6 }}
+            className="absolute inset-0 rounded-full border-2 border-gold"
+            animate={{ scale: [1, 1.5], opacity: [0.9, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeOut', repeatDelay: 1.2 }}
           />
         </motion.button>
       )}
@@ -187,6 +200,24 @@ export function MenuView({ onBack }: { onBack: () => void }) {
       )}
       {customize && (
         <DishSheet item={customize.item} selectionKey={customize.key} onClose={() => setCustomize(null)} />
+      )}
+      {actionsOpen && (
+        <MenuActionsSheet
+          restaurant={restaurant}
+          onClose={() => setActionsOpen(false)}
+          onSearchClick={() => {
+            setActionsOpen(false);
+            setSearchOpen(true);
+          }}
+          onWifiClick={() => {
+            setActionsOpen(false);
+            onWifiClick();
+          }}
+          onReviewsClick={() => {
+            setActionsOpen(false);
+            onReviewsClick();
+          }}
+        />
       )}
     </motion.div>
   );

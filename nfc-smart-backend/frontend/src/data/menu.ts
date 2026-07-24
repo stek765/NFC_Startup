@@ -33,17 +33,22 @@ const bionda: (note: string) => Pairing = (note) => ({ label: "Foster's", note, 
 const nonFiltrata: (note: string) => Pairing = (note) => ({ label: 'Ichnusa non filtrata', note, image: images.darkBeer, price: 3.5 });
 const scura: (note: string) => Pairing = (note) => ({ label: 'Birra scura', note, image: images.darkBeer, price: 3.5 });
 
-export const EXTRA_INGREDIENTS = [
-  'Mozzarella di bufala',
-  'Stracciatella di bufala',
-  'Nduja',
-  'Salamella',
-  'Prosciutto crudo',
-  'Gorgonzola',
-  'Funghi porcini',
-  'Friarielli',
-  'Acciughe',
-  'Scamorza affumicata',
+export interface ExtraIngredient {
+  name: string;
+  price: number;
+}
+
+export const EXTRA_INGREDIENTS: ExtraIngredient[] = [
+  { name: 'Mozzarella di bufala', price: 2 },
+  { name: 'Stracciatella di bufala', price: 2.5 },
+  { name: 'Nduja', price: 1.5 },
+  { name: 'Salamella', price: 1.5 },
+  { name: 'Prosciutto crudo', price: 2.5 },
+  { name: 'Gorgonzola', price: 1.5 },
+  { name: 'Funghi porcini', price: 2.5 },
+  { name: 'Friarielli', price: 1.5 },
+  { name: 'Acciughe', price: 1.5 },
+  { name: 'Scamorza affumicata', price: 1.5 },
 ];
 
 export const menu: MenuCategory[] = [

@@ -67,7 +67,13 @@ export function App({ restaurant }: { restaurant: Restaurant }) {
                 />
               </motion.div>
             ) : (
-              <MenuView key="menu" onBack={() => goTo('hero')} />
+              <MenuView
+                key="menu"
+                restaurant={restaurant}
+                onBack={() => goTo('hero')}
+                onWifiClick={openWifi}
+                onReviewsClick={() => setReviewsPageOpen(true)}
+              />
             )}
           </AnimatePresence>
 

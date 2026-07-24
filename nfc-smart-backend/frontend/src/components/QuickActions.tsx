@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
 import { CallBell, Star, WifiHigh } from '@phosphor-icons/react';
 import type { Restaurant } from '../types';
 import { useLang } from '../i18n';
 import { track } from '../lib/analytics';
 import { reviewUrl } from '../lib/review';
+import { useCallWaiter } from '../lib/useCallWaiter';
 
 function ActionButton({
   icon,
@@ -49,21 +49,7 @@ function ActionButton({
 
 function CallWaiterButton() {
   const { t } = useLang();
-  const [called, setCalled] = useState(false);
-  const timeoutRef = useRef<number | undefined>(undefined);
-
-  useEffect(() => () => window.clearTimeout(timeoutRef.current), []);
-
-  function callWaiter() {
-    if (called) {
-      window.clearTimeout(timeoutRef.current);
-      setCalled(false);
-      return;
-    }
-    track('call_waiter');
-    setCalled(true);
-    timeoutRef.current = window.setTimeout(() => setCalled(false), 30_000);
-  }
+  const { called, callWaiter } = useCallWaiter();
 
   return (
     <ActionButton

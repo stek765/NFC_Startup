@@ -2,10 +2,12 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Star, X } from '@phosphor-icons/react';
 import { useLang } from '../i18n';
 import { useLockBodyScroll } from '../lib/useLockBodyScroll';
+import { useSheetDrag } from '../lib/useSheetDrag';
 import { track } from '../lib/analytics';
 
 export function ReviewSheet({ href, onClose }: { href: string; onClose: () => void }) {
   useLockBodyScroll();
+  const { startDrag, panelProps } = useSheetDrag(onClose);
   const { t } = useLang();
 
   return (
@@ -19,6 +21,7 @@ export function ReviewSheet({ href, onClose }: { href: string; onClose: () => vo
         onClick={onClose}
       >
         <motion.div
+          {...panelProps}
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
@@ -26,7 +29,9 @@ export function ReviewSheet({ href, onClose }: { href: string; onClose: () => vo
           onClick={(e) => e.stopPropagation()}
           className="w-full rounded-t-3xl border-t border-border bg-surface px-6 pb-10 pt-4"
         >
-          <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-border" />
+          <div onPointerDown={startDrag} className="-mt-2 touch-none py-3" style={{ cursor: 'grab' }}>
+            <div className="mx-auto h-1 w-10 rounded-full bg-border" />
+          </div>
           <div className="mb-2 flex items-center justify-between">
             <h2 className="font-display text-xl font-semibold text-text">{t.reviewSheetTitle}</h2>
             <button

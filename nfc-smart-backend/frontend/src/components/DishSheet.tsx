@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Check, HandTap, X } from '@phosphor-icons/react';
+import { Check, HandPointing, X } from '@phosphor-icons/react';
 import { EXTRA_INGREDIENTS, type MenuItem } from '../data/menu';
 import { useSelection } from '../context/SelectionContext';
 import { useLang } from '../i18n';
+import { dishTotal } from '../lib/pricing';
 import { useLockBodyScroll } from '../lib/useLockBodyScroll';
+import { useSheetDrag } from '../lib/useSheetDrag';
+
+function euro(value: number): string {
+  return `€${value.toFixed(2).replace('.', ',')}`;
+}
 
 function ingredientsOf(item: MenuItem): string[] {
   return item.description
@@ -13,25 +19,76 @@ function ingredientsOf(item: MenuItem): string[] {
     .filter((s) => s.length > 1);
 }
 
+// Three real poses (not a baked keyframe array) chained through spring
+// physics via onAnimationComplete — each leg of the tap gets its own spring
+// feel (a settling entrance, a quick decisive flick down, a soft release),
+// which reads as one continuous fluid gesture instead of a mechanical
+// tween. `onLand` fires exactly when the flick lands, so the chip's own
+// "removed" look and the ripple are triggered by the real animation state
+// rather than a guessed timestamp.
+const FINGER_POSES = {
+  hidden: { opacity: 0, scale: 0.7, rotate: -16, x: 0, y: 0 },
+  idle: { opacity: 1, scale: 1, rotate: -13, x: 0, y: 0 },
+  tap: { opacity: 1, scale: 0.82, rotate: 12, x: 2, y: 4 },
+  relax: { opacity: 1, scale: 0.92, rotate: -4, x: 0, y: -1 },
+} as const;
+
+function FingerTap({ onLand }: { onLand: () => void }) {
+  const [phase, setPhase] = useState<'idle' | 'tap' | 'relax'>('idle');
+
+  return (
+    <motion.span
+      key="demo-finger"
+      initial={FINGER_POSES.hidden}
+      animate={FINGER_POSES[phase]}
+      exit={{ opacity: 0, scale: 0.75, transition: { duration: 0.35, ease: 'easeOut' } }}
+      transition={
+        phase === 'idle'
+          ? { type: 'spring', stiffness: 260, damping: 22 }
+          : phase === 'tap'
+            ? { type: 'spring', stiffness: 520, damping: 13 }
+            : { type: 'spring', stiffness: 220, damping: 24 }
+      }
+      onAnimationComplete={() => {
+        if (phase === 'idle') {
+          onLand();
+          setPhase('tap');
+        } else if (phase === 'tap') {
+          setPhase('relax');
+        }
+      }}
+      className="flex h-full w-full items-center justify-center text-gold drop-shadow-[0_4px_10px_rgba(28,26,21,0.35)]"
+    >
+      <HandPointing size={26} weight="bold" />
+    </motion.span>
+  );
+}
+
 function Chip({
   label,
+  priceLabel,
   state,
   demo,
+  demoLanded,
+  onLand,
   onTap,
 }: {
   label: string;
+  priceLabel?: string;
   state: 'normal' | 'removed' | 'added';
   demo?: boolean;
+  demoLanded?: boolean;
+  onLand?: () => void;
   onTap: () => void;
 }) {
-  const showRemoved = state === 'removed' || demo;
+  const showRemoved = state === 'removed' || demoLanded;
   return (
     <motion.button
       type="button"
       onClick={onTap}
-      animate={demo ? { scale: [1, 0.88, 1] } : { scale: 1 }}
-      transition={{ duration: 0.5, times: [0, 0.4, 1] }}
-      className={`relative border px-3.5 py-2 text-[13px] transition active:scale-95 ${
+      animate={demoLanded ? { scale: 0.86 } : { scale: 1 }}
+      transition={{ duration: 0.18, ease: 'easeOut' }}
+      className={`relative overflow-visible border px-3.5 py-2 text-[13px] transition active:scale-95 ${
         showRemoved
           ? 'border-border text-text-muted/70 line-through'
           : state === 'added'
@@ -41,19 +98,34 @@ function Chip({
     >
       <AnimatePresence>
         {demo && (
-          <motion.span
-            aria-hidden
-            initial={{ opacity: 0, scale: 0.6, y: 6 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.6 }}
-            transition={{ duration: 0.25 }}
-            className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-gold text-bg shadow-[0_4px_12px_rgba(154,123,79,0.5)]"
-          >
-            <HandTap size={15} weight="fill" />
-          </motion.span>
+          <>
+            {demoLanded && (
+              <motion.span
+                aria-hidden
+                key="demo-ripple"
+                initial={{ opacity: 0.6, scale: 0.3 }}
+                animate={{ opacity: 0, scale: 2.2 }}
+                transition={{ duration: 1, ease: 'easeOut' }}
+                className="pointer-events-none absolute left-1/2 top-1/2 z-10 h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-gold"
+              />
+            )}
+            {/* Static wrapper handles centering only, so the pose animation
+                below can't ever fight it for control of `transform`. */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-1/2 z-20 h-11 w-11 -translate-x-1/2 -translate-y-1/2"
+            >
+              <FingerTap onLand={() => onLand?.()} />
+            </span>
+          </>
         )}
       </AnimatePresence>
       {label}
+      {priceLabel && !showRemoved && (
+        <span className={`ml-1.5 tabular-nums ${state === 'added' ? 'text-bg/70' : 'text-text-muted'}`}>
+          {priceLabel}
+        </span>
+      )}
     </motion.button>
   );
 }
@@ -68,23 +140,33 @@ export function DishSheet({
   onClose: () => void;
 }) {
   useLockBodyScroll();
+  const { startDrag, panelProps } = useSheetDrag(onClose);
   const { t } = useLang();
   const { getMods, setMods, isSelected, toggle } = useSelection();
   const mods = getMods(selectionKey);
   const selected = isSelected(selectionKey);
   const ingredients = ingredientsOf(item);
   const extras = EXTRA_INGREDIENTS.filter(
-    (extra) => !ingredients.some((ing) => ing.toLowerCase().includes(extra.toLowerCase())),
+    (extra) => !ingredients.some((ing) => ing.toLowerCase().includes(extra.name.toLowerCase())),
   );
+  const total = dishTotal(item, mods);
 
-  // First time someone opens this dish's editor, briefly "tap" the first
-  // ingredient by itself to show what removing one looks like — doesn't
-  // touch real selection state, purely a demonstration.
+  // First time someone opens this dish's editor, briefly show an oversized
+  // finger "tapping" the first ingredient to demonstrate removal — doesn't
+  // touch real selection state, purely a demonstration. It stays in place
+  // and just rotates/shifts slightly (no swoop-in from off-screen). The
+  // finger's own spring sequence (FingerTap) reports back via onLand exactly
+  // when its tap flick lands, so the chip's "removed" look and the ripple
+  // are triggered by the real animation, not a guessed timestamp.
   const [demoOn, setDemoOn] = useState(false);
+  const [demoLanded, setDemoLanded] = useState(false);
   useEffect(() => {
     if (mods.removed.length > 0 || mods.added.length > 0) return;
-    const showTimer = window.setTimeout(() => setDemoOn(true), 700);
-    const hideTimer = window.setTimeout(() => setDemoOn(false), 2000);
+    const showTimer = window.setTimeout(() => setDemoOn(true), 600);
+    const hideTimer = window.setTimeout(() => {
+      setDemoOn(false);
+      setDemoLanded(false);
+    }, 4200);
     return () => {
       window.clearTimeout(showTimer);
       window.clearTimeout(hideTimer);
@@ -117,6 +199,7 @@ export function DishSheet({
         onClick={onClose}
       >
         <motion.div
+          {...panelProps}
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
@@ -124,13 +207,20 @@ export function DishSheet({
           onClick={(e) => e.stopPropagation()}
           className="flex max-h-[85dvh] w-full flex-col overflow-hidden rounded-t-3xl bg-bg"
         >
-          <div className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-border" />
+          <div onPointerDown={startDrag} className="shrink-0 touch-none py-3" style={{ cursor: 'grab' }}>
+            <div className="mx-auto h-1 w-10 rounded-full bg-border" />
+          </div>
           <div className="shrink-0 px-6 pt-4">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <h2 className="font-display text-[28px] font-semibold leading-tight text-text">{item.name}</h2>
                 <p className="mt-0.5 font-display text-[16px] font-medium tabular-nums text-gold">
-                  €{item.price.toFixed(2).replace('.', ',')}
+                  {euro(total)}
+                  {mods.added.length > 0 && (
+                    <span className="ml-1.5 text-[12px] font-normal text-text-muted line-through">
+                      {euro(item.price)}
+                    </span>
+                  )}
                 </p>
               </div>
               <button
@@ -163,6 +253,8 @@ export function DishSheet({
                       label={ing}
                       state={mods.removed.includes(ing) ? 'removed' : 'normal'}
                       demo={i === 0 && demoOn}
+                      demoLanded={i === 0 && demoLanded}
+                      onLand={() => setDemoLanded(true)}
                       onTap={() => toggleRemoved(ing)}
                     />
                   ))}
@@ -176,10 +268,11 @@ export function DishSheet({
             <div className="mt-3 flex flex-wrap gap-2">
               {extras.map((extra) => (
                 <Chip
-                  key={extra}
-                  label={extra}
-                  state={mods.added.includes(extra) ? 'added' : 'normal'}
-                  onTap={() => toggleAdded(extra)}
+                  key={extra.name}
+                  label={extra.name}
+                  priceLabel={`+${euro(extra.price)}`}
+                  state={mods.added.includes(extra.name) ? 'added' : 'normal'}
+                  onTap={() => toggleAdded(extra.name)}
                 />
               ))}
             </div>

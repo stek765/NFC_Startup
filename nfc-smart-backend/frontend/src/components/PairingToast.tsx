@@ -5,6 +5,8 @@ import { menu, type MenuItem } from '../data/menu';
 import { useSelection } from '../context/SelectionContext';
 import { useLang } from '../i18n';
 import { localizeNote } from '../i18n/menu.i18n';
+import type { PairingGroup } from '../lib/pairing';
+import { DrinkSheet } from './DrinkSheet';
 
 function itemFromKey(key: string): MenuItem | undefined {
   const separator = key.indexOf(':');
@@ -17,6 +19,7 @@ export function PairingToast() {
   const { lang, t } = useLang();
   const { lastAdded, isPaired, togglePaired } = useSelection();
   const [current, setCurrent] = useState<{ item: MenuItem; key: string; ts: number } | null>(null);
+  const [drinkOpen, setDrinkOpen] = useState(false);
   const timerRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
@@ -31,6 +34,10 @@ export function PairingToast() {
 
   const pairing = current?.item.pairing;
   const accepted = current ? isPaired(current.key) : false;
+  const group: PairingGroup | null =
+    drinkOpen && current && pairing
+      ? { pairing, count: 1, dishes: [current.item], keys: [current.key] }
+      : null;
 
   function accept() {
     if (!current) return;
@@ -39,12 +46,31 @@ export function PairingToast() {
     timerRef.current = window.setTimeout(() => setCurrent(null), 1300);
   }
 
+  function discover() {
+    window.clearTimeout(timerRef.current);
+    setDrinkOpen(true);
+  }
+
   return (
-    <AnimatePresence>
-      {current && pairing && (
+    <>
+      <AnimatePresence>
+        {current && pairing && (
+          <motion.div
+            key={`backdrop-${current.ts}`}
+            onClick={() => setCurrent(null)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[44] bg-bg/10 backdrop-blur-sm"
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {current && pairing && (
         <motion.div
           key={current.ts}
-          onClick={() => setCurrent(null)}
+          onClick={discover}
           initial={{ opacity: 0, y: 48, scale: 0.94 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 24, transition: { duration: 0.25 } }}
@@ -110,7 +136,15 @@ export function PairingToast() {
             </motion.button>
           </div>
         </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+      <DrinkSheet
+        group={group}
+        onClose={() => {
+          setDrinkOpen(false);
+          setCurrent(null);
+        }}
+      />
+    </>
   );
 }

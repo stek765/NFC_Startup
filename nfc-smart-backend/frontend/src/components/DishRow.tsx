@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { Check } from '@phosphor-icons/react';
+import { Check, Plus } from '@phosphor-icons/react';
 import type { MenuItem } from '../data/menu';
 import { useSelection } from '../context/SelectionContext';
 import { useLang } from '../i18n';
@@ -20,6 +20,7 @@ export function DishRow({
   const description = localizeDescription(item, lang);
   const mods = getMods(selectionKey);
   const hasMods = selected && (mods.removed.length > 0 || mods.added.length > 0);
+  const handleTap = selected ? () => toggle(selectionKey) : (onCustomize ?? (() => toggle(selectionKey)));
 
   return (
     <motion.div
@@ -31,8 +32,8 @@ export function DishRow({
     >
       <button
         type="button"
-        onClick={onCustomize ?? (() => toggle(selectionKey))}
-        aria-pressed={onCustomize ? undefined : selected}
+        onClick={handleTap}
+        aria-pressed={selected}
         className="min-w-0 flex-1 text-left active:opacity-70"
       >
         <div className="flex items-baseline gap-2.5">
@@ -56,22 +57,41 @@ export function DishRow({
           </p>
         )}
       </button>
-      <AnimatePresence>
-        {selected && (
-          <motion.button
-            type="button"
-            onClick={() => toggle(selectionKey)}
-            aria-label={t.removeItem(item.name)}
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.6 }}
-            transition={{ duration: 0.2 }}
-            className="mt-[3px] flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-text text-bg active:scale-90"
-          >
-            <Check size={12} weight="bold" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      <button
+        type="button"
+        onClick={handleTap}
+        aria-label={selected ? t.removeItem(item.name) : t.addToSelection}
+        aria-pressed={selected}
+        className={`mt-[3px] flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-colors active:scale-90 ${
+          selected ? 'bg-text text-bg' : 'border border-text-muted/35 text-text-muted/70'
+        }`}
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          {selected ? (
+            <motion.span
+              key="check"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ duration: 0.15 }}
+              className="flex items-center justify-center"
+            >
+              <Check size={12} weight="bold" />
+            </motion.span>
+          ) : (
+            <motion.span
+              key="plus"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ duration: 0.15 }}
+              className="flex items-center justify-center"
+            >
+              <Plus size={12} weight="bold" />
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </button>
     </motion.div>
   );
 }

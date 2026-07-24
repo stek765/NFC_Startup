@@ -12,6 +12,8 @@ export interface UiStrings {
   headlineChoose: string;
   headlineGlass: string;
   reviews: string;
+  moreOptions: string;
+  moreOptionsHint: string;
   reviewSheetTitle: string;
   reviewSheetBody: string;
   reviewSheetCta: string;
@@ -34,6 +36,7 @@ export interface UiStrings {
   inList: string;
   waiter: string;
   waiterCalled: string;
+  readyCallWaiter: string;
   wifiNetwork: string;
   copied: string;
   tapToCopy: string;
@@ -67,6 +70,8 @@ export const ui: Record<Lang, UiStrings> = {
     headlineChoose: 'Manca solo il profumo.',
     headlineGlass: 'Ogni piatto ha il suo bicchiere.',
     reviews: 'Recensioni',
+    moreOptions: 'Altre opzioni',
+    moreOptionsHint: 'Wi-Fi, recensioni, cameriere: sempre a portata di tocco.',
     reviewSheetTitle: 'Ti è piaciuta la serata?',
     reviewSheetBody: 'Una recensione su Google è il modo più semplice per ringraziare la cucina: bastano due tocchi.',
     reviewSheetCta: 'Lascia una recensione',
@@ -89,6 +94,7 @@ export const ui: Record<Lang, UiStrings> = {
     inList: 'Nella lista',
     waiter: 'Cameriere',
     waiterCalled: 'In arrivo',
+    readyCallWaiter: 'Sono pronto, chiama cameriere',
     wifiNetwork: 'Rete Wi-Fi',
     copied: 'Copiata negli appunti',
     tapToCopy: 'Tocca per copiare',
@@ -120,6 +126,8 @@ export const ui: Record<Lang, UiStrings> = {
     headlineChoose: 'Only the smell is missing.',
     headlineGlass: 'Every dish has its glass.',
     reviews: 'Reviews',
+    moreOptions: 'More options',
+    moreOptionsHint: 'Wi-Fi, reviews, waiter: always one tap away.',
     reviewSheetTitle: 'Enjoyed your evening?',
     reviewSheetBody: 'A Google review is the easiest way to thank the kitchen — it takes two taps.',
     reviewSheetCta: 'Leave a review',
@@ -142,6 +150,7 @@ export const ui: Record<Lang, UiStrings> = {
     inList: 'In your list',
     waiter: 'Waiter',
     waiterCalled: 'On the way',
+    readyCallWaiter: "I'm ready, call the waiter",
     wifiNetwork: 'Wi-Fi network',
     copied: 'Copied to clipboard',
     tapToCopy: 'Tap to copy',
@@ -173,6 +182,8 @@ export const ui: Record<Lang, UiStrings> = {
     headlineChoose: 'Nur der Duft fehlt.',
     headlineGlass: 'Jedes Gericht hat sein Glas.',
     reviews: 'Bewertungen',
+    moreOptions: 'Weitere Optionen',
+    moreOptionsHint: 'WLAN, Bewertungen, Kellner: immer nur einen Fingertipp entfernt.',
     reviewSheetTitle: 'War es ein schöner Abend?',
     reviewSheetBody: 'Eine Google-Bewertung ist der einfachste Dank an die Küche — zwei Fingertipps genügen.',
     reviewSheetCta: 'Bewertung schreiben',
@@ -195,6 +206,7 @@ export const ui: Record<Lang, UiStrings> = {
     inList: 'In der Liste',
     waiter: 'Kellner',
     waiterCalled: 'Kommt gleich',
+    readyCallWaiter: 'Bereit, Kellner rufen',
     wifiNetwork: 'WLAN-Netzwerk',
     copied: 'Kopiert',
     tapToCopy: 'Zum Kopieren tippen',

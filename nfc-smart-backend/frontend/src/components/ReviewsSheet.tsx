@@ -4,9 +4,11 @@ import { curatedReviews, googleRating, googleReviewCount } from '../data/reviews
 import { useLang } from '../i18n';
 import { track } from '../lib/analytics';
 import { useLockBodyScroll } from '../lib/useLockBodyScroll';
+import { useSheetDrag } from '../lib/useSheetDrag';
 
 export function ReviewsSheet({ href, onClose }: { href: string; onClose: () => void }) {
   useLockBodyScroll();
+  const { startDrag, panelProps } = useSheetDrag(onClose);
   const { t } = useLang();
 
   return (
@@ -20,6 +22,7 @@ export function ReviewsSheet({ href, onClose }: { href: string; onClose: () => v
         onClick={onClose}
       >
         <motion.div
+          {...panelProps}
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
@@ -27,7 +30,9 @@ export function ReviewsSheet({ href, onClose }: { href: string; onClose: () => v
           onClick={(e) => e.stopPropagation()}
           className="flex max-h-[85dvh] w-full flex-col overflow-hidden rounded-t-3xl bg-bg"
         >
-          <div className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-border" />
+          <div onPointerDown={startDrag} className="shrink-0 touch-none py-3" style={{ cursor: 'grab' }}>
+            <div className="mx-auto h-1 w-10 rounded-full bg-border" />
+          </div>
           <div className="shrink-0 px-6 pt-4">
             <div className="flex items-center justify-between">
               <h2 className="text-[13px] font-medium uppercase tracking-[0.3em] text-text">

@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { CaretRight, PencilSimple, Trash, X } from '@phosphor-icons/react';
+import { CallBell, CaretRight, PencilSimple, Trash, X } from '@phosphor-icons/react';
 import { useSelection } from '../context/SelectionContext';
 import type { DishMods } from '../context/SelectionContext';
 import { useLang } from '../i18n';
 import { localizeCategoryName } from '../i18n/menu.i18n';
 import type { MenuItem } from '../data/menu';
 import { type PairingGroup, pairingTint, resolveSelection, untakenPairingGroups } from '../lib/pairing';
+import { useCallWaiter } from '../lib/useCallWaiter';
 import { useLockBodyScroll } from '../lib/useLockBodyScroll';
+import { useSheetDrag } from '../lib/useSheetDrag';
 import { DrinkSheet } from './DrinkSheet';
 
 function euro(value: number): string {
@@ -44,10 +46,12 @@ export function SelectionSheet({
   onCustomize: (item: MenuItem, key: string) => void;
 }) {
   useLockBodyScroll();
+  const { startDrag, panelProps } = useSheetDrag(onClose);
   const { lang, t } = useLang();
   const { selectedKeys, toggle, clear, getMods, isPaired, togglePaired } = useSelection();
   const entries = resolveSelection(selectedKeys);
   const pairings = untakenPairingGroups(entries, isPaired);
+  const { called, callWaiter } = useCallWaiter();
 
   const [openDrink, setOpenDrink] = useState<PairingGroup | null>(null);
 
@@ -64,6 +68,7 @@ export function SelectionSheet({
         onClick={onClose}
       >
         <motion.div
+          {...panelProps}
           layout
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
@@ -72,7 +77,9 @@ export function SelectionSheet({
           onClick={(e) => e.stopPropagation()}
           className="flex max-h-[85dvh] w-full flex-col overflow-hidden rounded-t-3xl bg-bg"
         >
-          <div className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-border" />
+          <div onPointerDown={startDrag} className="shrink-0 touch-none py-3" style={{ cursor: 'grab' }}>
+            <div className="mx-auto h-1 w-10 rounded-full bg-border" />
+          </div>
           <div className="shrink-0 px-6 pt-4">
             <div className="flex items-center justify-between">
               <h2 className="text-[13px] font-medium uppercase tracking-[0.3em] text-text">
@@ -219,14 +226,26 @@ export function SelectionSheet({
                   </motion.div>
                 )}
 
-                <button
-                  type="button"
-                  onClick={clear}
-                  className="mt-7 flex w-full items-center justify-center gap-2 border border-text/50 py-3.5 text-[12px] font-medium uppercase tracking-[0.3em] text-text active:scale-[0.98]"
-                >
-                  <Trash size={15} />
-                  {t.clearList}
-                </button>
+                <div className="mt-7 flex items-stretch gap-2">
+                  <button
+                    type="button"
+                    onClick={clear}
+                    aria-label={t.clearList}
+                    className="flex shrink-0 items-center justify-center rounded-full border border-gold/50 px-3.5 text-gold active:scale-[0.98]"
+                  >
+                    <Trash size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={callWaiter}
+                    className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-3 text-[11px] font-semibold uppercase tracking-[0.12em] transition active:scale-[0.98] ${
+                      called ? 'bg-text text-gold' : 'bg-gold text-bg'
+                    }`}
+                  >
+                    <CallBell size={14} weight={called ? 'fill' : 'regular'} />
+                    {called ? t.waiterCalled : t.readyCallWaiter}
+                  </button>
+                </div>
               </>
             )}
           </div>
